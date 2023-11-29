@@ -40,7 +40,7 @@ public enum WebDAVServerType: Codable {
 }
 
 public struct WebDAVSecret: CustomStringConvertible, CustomDebugStringConvertible, ExpressibleByStringLiteral, Codable {
-    let inner: String
+    public let inner: String
     
     public var description: String {
         "<secret>"

@@ -63,7 +63,7 @@ public extension WebDAVAccount {
     }
 }
 
-public struct BasicWebDAVAccount: WebDAVAccount, Codable {
+public struct BasicWebDAVAccount: WebDAVAccount {
     public var username: String
     public var password: WebDAVSecret
     
@@ -73,4 +73,16 @@ public struct BasicWebDAVAccount: WebDAVAccount, Codable {
 
     
     public var userAgent: String?
+    
+    public init(username: String, password: WebDAVSecret, hostname: String, serverType: WebDAVServerType, userAgent: String? = nil) {
+        self.username = username
+        self.password = password
+        self.hostname = hostname
+        self.serverType = serverType
+        self.userAgent = userAgent
+    }
+}
+
+extension BasicWebDAVAccount: Codable {
+    
 }
