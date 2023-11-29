@@ -1,7 +1,7 @@
 import XCTest
-@testable import WebDAV_Swift
+@testable import WebDAVKit
 
-final class WebDAV_SwiftTests: XCTestCase {
+final class WebDAVKitTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest

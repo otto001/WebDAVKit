@@ -1,6 +1,6 @@
 //
 //  WebDAVSession+Upload.swift
-//  WebDAV-Swift
+//  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
 //  Licensed under the MIT-License included in the project
