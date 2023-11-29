@@ -28,10 +28,10 @@ extension WebDAVSession {
     }
     
     @discardableResult
-    public func upload(to path: any WebDAVPathProtocol, data: Data, contentType: String, headers: [String: String]? = nil, query: [String: String]? = nil, modifiedTime: Date?, account: any WebDAVAccount) async throws -> HTTPURLResponse {
+    public func upload(to path: any WebDAVPathProtocol, data: Data, contentType: MimeType, headers: [String: String]? = nil, query: [String: String]? = nil, modifiedTime: Date?, account: any WebDAVAccount) async throws -> HTTPURLResponse {
         var request = try self.authorizedRequest(method: .put, path: path, query: query, headers: headers, account: account)
         
-        request.addValue(contentType, forHTTPHeaderField: "Content-Type")
+        request.addValue(contentType.stringRepresentation, forHTTPHeaderField: "Content-Type")
         request.addValue("true", forHTTPHeaderField: "OCS-APIREQUEST")
         if let modifiedTime = modifiedTime {
             request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
