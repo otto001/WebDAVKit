@@ -1,5 +1,5 @@
 //
-//  PreviewOptions.swift
+//  NextcloudPreviewOptions.swift
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
@@ -17,7 +17,7 @@
 import Foundation
 import CoreGraphics
 
-public struct PreviewOptions: Hashable {
+public struct NextcloudPreviewOptions: Hashable {
     private var width: Int?
     private var height: Int?
     
@@ -37,7 +37,7 @@ public struct PreviewOptions: Hashable {
     }
     
     /// Configurable default thumbnail properties. Initial value of content fill and 512x512 dimensions.
-    public static var `default` = PreviewOptions(size: CGSize(width: 512, height: 512), contentMode: .fill)
+    public static var `default` = NextcloudPreviewOptions(size: CGSize(width: 512, height: 512), contentMode: .fill)
     
     /// Constants that define how the thumbnail fills the dimensions.
     public enum ContentMode: Hashable {
@@ -48,7 +48,7 @@ public struct PreviewOptions: Hashable {
     /// - Parameters:
     ///   - size: The size of the thumbnail. A nil value will use the server's default dimensions.
     ///   - contentMode: A flag that indicates whether the thumbnail view fits or fills the dimensions.
-    public init(_ size: (width: Int, height: Int)? = nil, contentMode: PreviewOptions.ContentMode) {
+    public init(_ size: (width: Int, height: Int)? = nil, contentMode: ContentMode) {
         if let size = size {
             width = size.width
             height = size.height
@@ -59,7 +59,7 @@ public struct PreviewOptions: Hashable {
     /// - Parameters:
     ///   - size: The size of the thumbnail. Width and height will be truncated to integer pixel counts.
     ///   - contentMode: A flag that indicates whether the thumbnail view fits or fills the image of the given dimensions.
-    public init(size: CGSize, contentMode: PreviewOptions.ContentMode) {
+    public init(size: CGSize, contentMode: ContentMode) {
         width = Int(size.width)
         height = Int(size.height)
         self.contentMode = contentMode

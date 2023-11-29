@@ -19,7 +19,7 @@ import Combine
 
 
 extension WebDAVSession {
-    private func nextcloudPreviewRequest(with previewOptions: PreviewOptions, fileId: String?, filePath: (any WebDAVPathProtocol)?, account: any WebDAVAccount) throws -> URLRequest {
+    private func nextcloudPreviewRequest(with previewOptions: NextcloudPreviewOptions, fileId: String?, filePath: (any WebDAVPathProtocol)?, account: any WebDAVAccount) throws -> URLRequest {
         
         var urlComponents = try account.nextcloudPreviewPath.urlComponents
         urlComponents.queryItems = []
@@ -51,11 +51,11 @@ extension WebDAVSession {
         return request
     }
     
-    public func preview(fileId: String, with previewOptions: PreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
+    public func preview(fileId: String, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
         return try await self.data(request: try self.nextcloudPreviewRequest(with: previewOptions, fileId: fileId, filePath: nil, account: account)).0
     }
     
-    public func preview(filePath: any WebDAVPathProtocol, with previewOptions: PreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
+    public func preview(filePath: any WebDAVPathProtocol, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
         return try await self.data(request: try self.nextcloudPreviewRequest(with: previewOptions, fileId: nil, filePath: filePath, account: account)).0
     }
 }

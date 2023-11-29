@@ -27,7 +27,7 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
     public private(set) var lastModified: Date
     
     public private(set) var size: Int
-    public private(set) var contentType: String?
+    public private(set) var contentType: MimeType?
     
     public private(set) var hasPreview: Bool?
     
@@ -35,7 +35,7 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
         self.contentType == nil
     }
     
-    public init(path: RelativeWebDAVPath, fileId: String?, lastModified: Date, size: Int, etag: String, contentType: String?, hasPreview: Bool?) {
+    public init(path: RelativeWebDAVPath, fileId: String?, lastModified: Date, size: Int, etag: String, contentType: MimeType?, hasPreview: Bool?) {
         self.path = path
         self.fileId = fileId
         self.lastModified = lastModified
@@ -54,7 +54,14 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
               let size = Int(sizeString),
               let etag = properties["getetag"].element?.text.replacingOccurrences(of: "\"", with: "")  else { return nil }
         
-        let contentType = properties["getcontenttype"].element?.text
+        let contentTypeString = properties["getcontenttype"].element?.text
+        let contentType: MimeType? = contentTypeString.flatMap { .init($0) }
+        
+        if contentTypeString != nil && contentType == nil {
+            // Malformed content type
+            return nil
+        }
+        
         let fileId = properties["fileid"].element?.text
         
         let hasPreview: Bool? = (properties["has-preview"].element?.text).map { $0 == "true" }

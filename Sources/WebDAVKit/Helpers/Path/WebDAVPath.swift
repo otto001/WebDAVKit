@@ -97,15 +97,15 @@ extension WebDAVPath: Codable {
 }
 
 extension WebDAVPath: RawRepresentable {
+    public typealias RawValue = String
+    
     public init(rawValue: String) {
         self = .init(rawValue)
     }
     
     public var rawValue: String {
         self._stringRepresentation
-    }
-    
-    public typealias RawValue = String
+    } 
 }
 
 
