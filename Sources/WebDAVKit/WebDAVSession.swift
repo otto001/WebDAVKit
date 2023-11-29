@@ -18,7 +18,7 @@ import Foundation
 
 
 public class WebDAVSession {
-    static let shared = WebDAVSession()
+    public static let shared = WebDAVSession()
     
     let urlSession: URLSession
     
