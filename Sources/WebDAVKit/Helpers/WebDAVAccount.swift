@@ -23,19 +23,17 @@ public protocol WebDAVAccount {
     
     var hostname: String { get }
     
-    var serverPath: AbsoluteWebDAVPath { get }
+    var serverFilesPath: AbsoluteWebDAVPath { get }
     
     var serverType: WebDAVServerType { get }
     
     var userAgent: String? { get }
     
     var supportsFileIds: Bool { get }
-    
-    var nextcloudPreviewPath: AbsoluteWebDAVPath { get throws }
 }
 
 public extension WebDAVAccount {
-    var serverPath: AbsoluteWebDAVPath {
+    var serverFilesPath: AbsoluteWebDAVPath {
         switch serverType {
         case .nextcloud:
             return AbsoluteWebDAVPath(hostname: hostname, path: .init("remote.php/dav/files/\(username)"))
@@ -50,15 +48,6 @@ public extension WebDAVAccount {
             return true
         case .other:
             return false
-        }
-    }
-    
-    var nextcloudPreviewPath: AbsoluteWebDAVPath {
-        get throws {
-            guard serverType == .nextcloud else {
-                throw WebDAVError.unsupported
-            }
-            return AbsoluteWebDAVPath(hostname: hostname, path: "/core/preview")
         }
     }
 }

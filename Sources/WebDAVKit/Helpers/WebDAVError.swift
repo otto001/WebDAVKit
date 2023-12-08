@@ -29,7 +29,7 @@ public enum WebDAVError: LocalizedError {
     /// 404
     case notFound
     /// other
-    case other
+    case httpErrorStatus(Int)
     
     /// Cannot move item due to the origin being the same as the destination
     case originSameAsDestination
@@ -52,6 +52,8 @@ public enum WebDAVError: LocalizedError {
     /// There was an error while building an url.
     case urlBuildingError
     
+    /// The body of the response of the server did not meet expectations.
+    case malformedResponseBody
     
     public var errorDescription: String? {
         switch self {
@@ -66,8 +68,8 @@ public enum WebDAVError: LocalizedError {
             return "Unsupported"
         case .notFound:
             return "Not Found"
-        case .other:
-            return "Unknown Error"
+        case .httpErrorStatus:
+            return "Server Error"
         case .internalError:
             return "Internal Error"
         case .logoutError:
@@ -90,8 +92,8 @@ public enum WebDAVError: LocalizedError {
             return "The server does not support the feature you tried to use."
         case .notFound:
             return "The resource you are trying to acces is not on the Server."
-        case .other:
-            return "Unknown Error."
+        case .httpErrorStatus(let status):
+            return "Server returned http status `\(status)`."
         case .internalError:
             return "Internal Error."
         default:
@@ -125,7 +127,7 @@ public enum WebDAVError: LocalizedError {
             case 507:
                 return .insufficientStorage
             default:
-                return .other
+                return .httpErrorStatus(statusCode)
             }
         }
 

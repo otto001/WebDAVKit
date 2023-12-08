@@ -29,7 +29,7 @@ extension WebDAVSession {
     
     @discardableResult
     public func upload(to path: any WebDAVPathProtocol, data: Data, contentType: MimeType, headers: [String: String]? = nil, query: [String: String]? = nil, modifiedTime: Date?, account: any WebDAVAccount) async throws -> HTTPURLResponse {
-        var request = try self.authorizedRequest(method: .put, path: path, query: query, headers: headers, account: account)
+        var request = try self.authorizedRequest(method: .put, filePath: path, query: query, headers: headers, account: account)
         
         request.addValue(contentType.stringRepresentation, forHTTPHeaderField: "Content-Type")
         request.addValue("true", forHTTPHeaderField: "OCS-APIREQUEST")

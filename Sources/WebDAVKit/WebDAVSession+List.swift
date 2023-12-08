@@ -23,7 +23,7 @@ extension WebDAVSession {
         try WebDAVError.checkForError(response: response)
         
         guard let string = String(data: data, encoding: .utf8) else {
-            throw WebDAVError.other
+            throw WebDAVError.malformedResponseBody
         }
         
         let xml = XMLHash.config { config in
@@ -38,9 +38,9 @@ extension WebDAVSession {
     }
     
     public func listFiles(at path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, foldersFirst: Bool = false, dropFirst: Bool = false, depth: WebDAVListDepth? = nil, checkHasPreview: Bool = true, account: any WebDAVAccount) async throws -> [WebDAVFile] {
-        let absolutePath = try AbsoluteWebDAVPath(path, account: account)
+        let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
-        var request = try self.authorizedRequest(method: .propfind, path: path, query: query, headers: headers, account: account)
+        var request = try self.authorizedRequest(method: .propfind, filePath: path, query: query, headers: headers, account: account)
         
         if let depth = depth {
             request.addValue(depth.rawValue, forHTTPHeaderField: "Depth")
@@ -64,9 +64,9 @@ extension WebDAVSession {
     }
     
     public func filterFiles(at path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, foldersFirst: Bool = true, checkHasPreview: Bool = true, favorites: Bool? = nil, account: any WebDAVAccount) async throws -> [WebDAVFile] {
-        let absolutePath = try AbsoluteWebDAVPath(path, account: account)
+        let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
-        var request = try self.authorizedRequest(method: .report, path: path, query: query, headers: headers, account: account)
+        var request = try self.authorizedRequest(method: .report, filePath: path, query: query, headers: headers, account: account)
         
         var rules = [String]()
         if let favorites = favorites {

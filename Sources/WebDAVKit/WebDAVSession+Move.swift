@@ -19,8 +19,8 @@ import Foundation
 extension WebDAVSession {
     @discardableResult
     public func move(from origin: any WebDAVPathProtocol, to destination: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, account: any WebDAVAccount) async throws -> HTTPURLResponse {
-        let absoluteOrigin = try AbsoluteWebDAVPath(origin, account: account)
-        let absoluteDestination = try AbsoluteWebDAVPath(destination, account: account)
+        let absoluteOrigin = try AbsoluteWebDAVPath(filePath: origin, account: account)
+        let absoluteDestination = try AbsoluteWebDAVPath(filePath: destination, account: account)
         
         guard absoluteOrigin != absoluteDestination else {
             throw WebDAVError.originSameAsDestination
@@ -30,7 +30,7 @@ extension WebDAVSession {
             throw WebDAVError.cannotMoveAcrossHostnames
         }
         
-        var request = try self.authorizedRequest(method: .move, path: origin, query: query, headers: headers, account: account)
+        var request = try self.authorizedRequest(method: .move, filePath: origin, query: query, headers: headers, account: account)
         
         request.addValue(absoluteDestination.path.stringRepresentation, forHTTPHeaderField: "Destination")
         

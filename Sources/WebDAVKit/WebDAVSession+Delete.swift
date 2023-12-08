@@ -19,7 +19,7 @@ import Foundation
 extension WebDAVSession {
     @discardableResult
     public func delete(path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, account: any WebDAVAccount) async throws -> HTTPURLResponse {
-        let request = try self.authorizedRequest(method: .delete, path: path, query: query, headers: headers, account: account)
+        let request = try self.authorizedRequest(method: .delete, filePath: path, query: query, headers: headers, account: account)
         
         let (_, urlResponse) = try await self.urlSession.data(for: request)
 

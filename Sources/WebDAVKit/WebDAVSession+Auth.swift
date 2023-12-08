@@ -60,14 +60,8 @@ extension WebDAVSession {
         request.addValue("Basic \(authHeader)", forHTTPHeaderField: "Authorization")
     }
     
-    
-    /// Creates an authorized URL request at the path and with the HTTP method specified.
-    /// - Parameters:
-    ///   - path: The path of the request
-    ///   - method: The HTTP Method for the request.
-    /// - Returns: The URL request if the credentials are valid (can be encoded as UTF-8).
-    public func authorizedRequest(method: WebDAVMethod, path: any WebDAVPathProtocol, query: [String: String]? = nil, headers: [String: String]? = nil, account: any WebDAVAccount) throws -> URLRequest {
-        var urlComponents = try AbsoluteWebDAVPath(path, account: account).urlComponents
+    public func authorizedRequest(method: WebDAVMethod, path: AbsoluteWebDAVPath, query: [String: String]? = nil, headers: [String: String]? = nil, account: any WebDAVAccount) throws -> URLRequest {
+        var urlComponents = path.urlComponents
         
         urlComponents.queryItems = query?.map {
             URLQueryItem(name: $0.key, value: $0.value)
@@ -86,6 +80,11 @@ extension WebDAVSession {
         }
         
         return request
+    }
+    
+    public func authorizedRequest(method: WebDAVMethod, filePath: any WebDAVPathProtocol, query: [String: String]? = nil, headers: [String: String]? = nil, account: any WebDAVAccount) throws -> URLRequest {
+        try self.authorizedRequest(method: method, path: try AbsoluteWebDAVPath(filePath: filePath, account: account),
+                                   query: query, headers: headers, account: account)
     }
     
 }

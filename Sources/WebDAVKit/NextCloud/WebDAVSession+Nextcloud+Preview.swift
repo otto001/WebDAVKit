@@ -1,5 +1,5 @@
 //
-//  WebDAVSession+Nextcloud.swift
+//  WebDAVSession+Nextcloud+Preview.swift
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
@@ -20,8 +20,12 @@ import Combine
 
 extension WebDAVSession {
     private func nextcloudPreviewRequest(with previewOptions: NextcloudPreviewOptions, fileId: String?, filePath: (any WebDAVPathProtocol)?, account: any WebDAVAccount) throws -> URLRequest {
-        
-        var urlComponents = try account.nextcloudPreviewPath.urlComponents
+
+        guard account.serverType == .nextcloud else {
+            throw WebDAVError.unsupported
+        }
+
+        var urlComponents = AbsoluteWebDAVPath(hostname: account.hostname, path: "/core/preview").urlComponents
         urlComponents.queryItems = []
         
         if let size = previewOptions.size {
@@ -37,7 +41,7 @@ extension WebDAVSession {
         if let fileId = fileId {
             urlComponents.queryItems!.append(URLQueryItem(name: "fileId", value: fileId))
         } else if let filePath = filePath {
-            let absolutePath = try AbsoluteWebDAVPath(filePath, account: account)
+            let absolutePath = try AbsoluteWebDAVPath(filePath: filePath, account: account)
             urlComponents.queryItems!.append(URLQueryItem(name: "file", value: absolutePath.path.stringRepresentation))
         }
         
@@ -51,11 +55,11 @@ extension WebDAVSession {
         return request
     }
     
-    public func preview(fileId: String, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
+    public func nextcloudPreview(fileId: String, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
         return try await self.data(request: try self.nextcloudPreviewRequest(with: previewOptions, fileId: fileId, filePath: nil, account: account)).0
     }
     
-    public func preview(filePath: any WebDAVPathProtocol, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
+    public func nextcloudPreview(filePath: any WebDAVPathProtocol, with previewOptions: NextcloudPreviewOptions = .default, account: any WebDAVAccount) async throws -> Data {
         return try await self.data(request: try self.nextcloudPreviewRequest(with: previewOptions, fileId: nil, filePath: filePath, account: account)).0
     }
 }

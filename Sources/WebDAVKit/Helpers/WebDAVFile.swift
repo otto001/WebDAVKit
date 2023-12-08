@@ -49,7 +49,7 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
         let properties = xml["propstat"][0]["prop"]
         guard var pathString = xml["href"].element?.text,
               let dateString = properties["getlastmodified"].element?.text,
-              let date = WebDAVFile.rfc1123Formatter.date(from: dateString),
+              let date = DateFormatter.rfc1123.date(from: dateString),
               let sizeString = properties["size"].element?.text,
               let size = Int(sizeString),
               let etag = properties["getetag"].element?.text.replacingOccurrences(of: "\"", with: "")  else { return nil }
@@ -83,19 +83,11 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
                   hasPreview: hasPreview)
     }
     
-    //MARK: Static
-    
-    static let rfc1123Formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
     
     //MARK: Public
     
     public var description: String {
-        "WebDAVFile(path: \(path), id: \(fileId ?? "nil"), isDirectory: \(isDirectory), lastModified: \(WebDAVFile.rfc1123Formatter.string(from: lastModified)), size: \(size), etag: \(etag))"
+        "WebDAVFile(path: \(path), id: \(fileId ?? "nil"), isDirectory: \(isDirectory), lastModified: \(DateFormatter.rfc1123.string(from: lastModified)), size: \(size), etag: \(etag))"
     }
     
     public static func sortedFiles(_ files: [WebDAVFile], foldersFirst: Bool, dropFirst: Bool) -> [WebDAVFile] {

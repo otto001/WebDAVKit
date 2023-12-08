@@ -32,14 +32,25 @@ public struct AbsoluteWebDAVPath {
         self.path = absolutePath.path
     }
     
-    public init(_ path: any WebDAVPathProtocol, account: any WebDAVAccount) throws {
-        if let absolutePath = path as? any AbsoluteWebDAVPathProtocol {
-            guard account.serverPath.isSubpath(of: absolutePath) else {
+    public init(filePath: any WebDAVPathProtocol, account: any WebDAVAccount) throws {
+        if let absolutePath = filePath as? any AbsoluteWebDAVPathProtocol {
+            guard account.serverFilesPath.isSubpath(of: absolutePath) else {
                 throw WebDAVError.pathDoesNotMatchAccount
             }
             self = AbsoluteWebDAVPath(absolutePath)
         } else {
-            self = account.serverPath.appending(path.stringRepresentation)
+            self = account.serverFilesPath.appending(filePath.stringRepresentation)
+        }
+    }
+    
+    public init(path: any WebDAVPathProtocol, account: any WebDAVAccount) throws {
+        if let absolutePath = path as? any AbsoluteWebDAVPathProtocol {
+            guard account.hostname == absolutePath.hostname else {
+                throw WebDAVError.pathDoesNotMatchAccount
+            }
+            self = AbsoluteWebDAVPath(absolutePath)
+        } else {
+            self = AbsoluteWebDAVPath(hostname: account.hostname, path: .init(path.stringRepresentation))
         }
     }
     

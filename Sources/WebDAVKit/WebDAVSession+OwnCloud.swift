@@ -37,7 +37,7 @@ extension WebDAVSession {
 //    }
 //    
     public func setIsFavorite(for path: any WebDAVPathProtocol, favorite: Bool, account: any WebDAVAccount) async throws {
-        var request = try self.authorizedRequest(method: .proppatch, path: path, account: account)
+        var request = try self.authorizedRequest(method: .proppatch, filePath: path, account: account)
         
         let body =
 """
