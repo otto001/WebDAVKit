@@ -1,9 +1,9 @@
 //
-//  NextcloudShareOptions.swift
+//  OwncloudShareOptions.swift
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 08.12.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,17 +17,17 @@
 import Foundation
 
 
-public struct NextcloudShareOptions {
-    public let shareType: NextcloudShareType
-    public let shareWith: NextcloudUserId?
-    public let permissions: NextcloudPermissions
+public struct OwncloudShareOptions {
+    public let shareType: OwncloudShareType
+    public let shareWith: OwncloudUserID?
+    public let permissions: OwncloudPermissions
     public let allowUploadsByPublic: Bool?
     public let hideDownload: Bool?
     public let password: WebDAVSecret?
     
     public var note: String?
     
-    private init(shareType: NextcloudShareType, shareWith: NextcloudUserId?, permissions: NextcloudPermissions,
+    private init(shareType: OwncloudShareType, shareWith: OwncloudUserID?, permissions: OwncloudPermissions,
                  allowUploadsByPublic: Bool?, hideDownload: Bool?,
                  password: WebDAVSecret?) {
         self.shareType = shareType
@@ -38,19 +38,19 @@ public struct NextcloudShareOptions {
         self.password = password
     }
     
-    public static func user(userId: NextcloudUserId, permissions: NextcloudPermissions, hideDownload: Bool? = nil) -> Self {
+    public static func user(userId: OwncloudUserID, permissions: OwncloudPermissions, hideDownload: Bool? = nil) -> Self {
         .init(shareType: .user, shareWith: userId, permissions: permissions,
               allowUploadsByPublic: false, hideDownload: hideDownload,
               password: nil)
     }
     
-    public static func group(groupId: NextcloudUserId, permissions: NextcloudPermissions, hideDownload: Bool? = nil) -> Self {
+    public static func group(groupId: OwncloudUserID, permissions: OwncloudPermissions, hideDownload: Bool? = nil) -> Self {
         .init(shareType: .group, shareWith: groupId, permissions: permissions,
               allowUploadsByPublic: false, hideDownload: hideDownload,
               password: nil)
     }
     
-    public static func `public`(permissions: NextcloudPermissions, allowUploads: Bool? = nil, hideDownload: Bool? = nil, password: WebDAVSecret?) -> Self {
+    public static func `public`(permissions: OwncloudPermissions, allowUploads: Bool? = nil, hideDownload: Bool? = nil, password: WebDAVSecret?) -> Self {
         .init(shareType: .public, shareWith: nil, permissions: permissions,
               allowUploadsByPublic: allowUploads, hideDownload: hideDownload,
               password: password)

@@ -1,9 +1,9 @@
 //
-//  NextcloudShare.swift
+//  OwncloudShare.swift
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,33 +17,33 @@
 import Foundation
 import SwiftyJSON
 
-public enum NextcloudShareType: Int {
+public enum OwncloudShareType: Int {
     case user = 0
     case group = 1
     case `public` = 3
 }
 
-public typealias NextcloudUserId = String
+public typealias OwncloudUserID = String
 
-public struct NextcloudShare {
+public struct OwncloudShare {
     
     public var account: any WebDAVAccount
     
-    public var id: Int
-    public var shareType: NextcloudShareType
+    public var id: String
+    public var shareType: OwncloudShareType
     
     public var path: WebDAVPath
     public var itemType: String
     public var mimeType: MimeType
     
-    public var permissions: NextcloudPermissions
+    public var permissions: OwncloudPermissions
     public var canEdit: Bool = false
     public var canDelete: Bool = false
     
-    public var uidOwner: NextcloudUserId
+    public var uidOwner: OwncloudUserID
     public var displaynameOwner: String
     
-    public var uidFileOwner: NextcloudUserId
+    public var uidFileOwner: OwncloudUserID
     public var displaynameFileOwner: String
     
     public var shareWith: String?
@@ -81,14 +81,14 @@ public struct NextcloudShare {
     public init(from json: JSON, account: any WebDAVAccount) throws {
         self.account = account
         
-        self.id = try json["id"].ocsInt.requiredField()
-        self.shareType = try json["share_type"].ocsInt.flatMap { NextcloudShareType(rawValue: $0) }.requiredField()
+        self.id = try json["id"].string.requiredField()
+        self.shareType = try json["share_type"].ocsInt.flatMap { .init(rawValue: $0) }.requiredField()
         
         self.path = try json["path"].string.flatMap { .init($0) }.requiredField()
         self.itemType = try json["item_type"].string.requiredField()
         self.mimeType = try json["mimetype"].string.flatMap { MimeType(rawValue: $0) }.requiredField()
         
-        self.permissions = try json["permissions"].ocsInt.flatMap { NextcloudPermissions(rawValue: $0) }.requiredField()
+        self.permissions = try json["permissions"].ocsInt.flatMap { .init(rawValue: $0) }.requiredField()
         self.canDelete = json["can_delete"].boolValue
         self.canEdit = json["can_edit"].boolValue
         

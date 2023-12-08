@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

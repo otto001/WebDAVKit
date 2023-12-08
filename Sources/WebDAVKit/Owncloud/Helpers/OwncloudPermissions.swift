@@ -1,9 +1,9 @@
 //
-//  NextcloudPermissions.swift
+//  OwncloudPermissions.swift
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 08.12.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,7 +17,7 @@
 import Foundation
 
 
-public struct NextcloudPermissions: OptionSet {
+public struct OwncloudPermissions: OptionSet {
     public let rawValue: Int
     
     public init(rawValue: Int) {

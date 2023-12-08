@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -18,10 +18,13 @@ import Foundation
 
 
 public class WebDAVSession {
+    /// A shared instance of WebDAVSession.
     public static let shared = WebDAVSession()
     
+    /// The URLSession used for all requests.
     let urlSession: URLSession
     
+    /// Creates a new WebDAVSession.
     public init() {
         self.urlSession = URLSession(configuration: .ephemeral)
     }

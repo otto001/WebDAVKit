@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,7 +19,9 @@ import SWXMLHash
 
 extension WebDAVSession {
     
-    private func getFilesFromResponse(response: URLResponse, data: Data, basePath: AbsoluteWebDAVPath, foldersFirst: Bool = true, dropFirst: Bool = false) throws -> [WebDAVFile] {
+    private func getFilesFromResponse(response: URLResponse, data: Data, 
+                                      basePath: AbsoluteWebDAVPath,
+                                      foldersFirst: Bool = true, dropFirst: Bool = false) throws -> [WebDAVFile] {
         try WebDAVError.checkForError(response: response, data: data)
         
         guard let string = String(data: data, encoding: .utf8) else {
@@ -37,7 +39,11 @@ extension WebDAVSession {
         return sortedFiles
     }
     
-    public func listFiles(at path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, foldersFirst: Bool = false, dropFirst: Bool = false, depth: WebDAVListDepth? = nil, checkHasPreview: Bool = true, account: any WebDAVAccount) async throws -> [WebDAVFile] {
+    public func listFiles(at path: any WebDAVPathProtocol, 
+                          headers: [String: String]? = nil, query: [String: String]? = nil,
+                          foldersFirst: Bool = false, dropFirst: Bool = false,
+                          depth: WebDAVListDepth? = nil, checkHasPreview: Bool = true,
+                          account: any WebDAVAccount) async throws -> [WebDAVFile] {
         let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
         var request = try self.authorizedRequest(method: .propfind, filePath: path, query: query, headers: headers, account: account)
@@ -63,7 +69,11 @@ extension WebDAVSession {
                                              foldersFirst: foldersFirst, dropFirst: dropFirst)
     }
     
-    public func filterFiles(at path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, foldersFirst: Bool = true, checkHasPreview: Bool = true, favorites: Bool? = nil, account: any WebDAVAccount) async throws -> [WebDAVFile] {
+    public func filterFiles(at path: any WebDAVPathProtocol, 
+                            headers: [String: String]? = nil, query: [String: String]? = nil,
+                            foldersFirst: Bool = true, checkHasPreview: Bool = true,
+                            favorites: Bool? = nil,
+                            account: any WebDAVAccount) async throws -> [WebDAVFile] {
         let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
         var request = try self.authorizedRequest(method: .report, filePath: path, query: query, headers: headers, account: account)

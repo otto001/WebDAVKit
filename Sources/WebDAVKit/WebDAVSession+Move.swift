@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,8 +17,18 @@
 import Foundation
 
 extension WebDAVSession {
-    @discardableResult
-    public func move(from origin: any WebDAVPathProtocol, to destination: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, account: any WebDAVAccount) async throws -> HTTPURLResponse {
+    /// Moves the file from the origin to the destination.
+    /// - Parameters: origin: The origin path.
+    /// - Parameters: destination: The destination path.
+    /// - Parameters: headers: Any additional headers to use for the request.
+    /// - Parameters: query: The query to use for the request.
+    /// - Parameters: account: The account used to authorize the request.
+    /// - Returns: The response.
+    /// - Throws: `WebDAVError.originSameAsDestination` if the origin and destination are the same.
+    /// - Throws: `WebDAVError.cannotMoveAcrossHostnames` if the origin and destination are on different hosts.
+    @discardableResult public func move(from origin: any WebDAVPathProtocol, to destination: any WebDAVPathProtocol, 
+                                        headers: [String: String]? = nil, query: [String: String]? = nil,
+                                        account: any WebDAVAccount) async throws -> HTTPURLResponse {
         let absoluteOrigin = try AbsoluteWebDAVPath(filePath: origin, account: account)
         let absoluteDestination = try AbsoluteWebDAVPath(filePath: destination, account: account)
         
@@ -35,7 +45,7 @@ extension WebDAVSession {
         request.addValue(absoluteDestination.path.stringRepresentation, forHTTPHeaderField: "Destination")
         
         let (data, urlResponse) = try await self.urlSession.data(for: request)
-
+        
         try WebDAVError.checkForError(response: urlResponse, data: data)
         
         return urlResponse as! HTTPURLResponse

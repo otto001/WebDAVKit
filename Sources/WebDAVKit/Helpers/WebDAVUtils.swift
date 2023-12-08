@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -37,6 +37,15 @@ public enum WebDAVMethod: String {
 
 public enum WebDAVServerType: Codable {
     case nextcloud, owncloud, other
+    
+    var isOwncloud: Bool {
+        switch self {
+        case .nextcloud, .owncloud:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 public struct WebDAVSecret: CustomStringConvertible, CustomDebugStringConvertible, ExpressibleByStringLiteral, Codable {

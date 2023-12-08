@@ -3,7 +3,7 @@
 //  WebDAVKit
 //
 //  Created by Matteo Ludwig on 29.11.23.
-//  Licensed under the MIT-License included in the project
+//  Licensed under the MIT-License included in the project.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -36,7 +36,10 @@ extension WebDAVSession {
 //        return self.ownCloudBaseURL(for: account.path.url)?.appendingPathComponent("path")
 //    }
 //    
-    public func setIsFavorite(for path: any WebDAVPathProtocol, favorite: Bool, account: any WebDAVAccount) async throws {
+    public func owncloudSetFavorite(for path: any WebDAVPathProtocol, favorite: Bool, account: any WebDAVAccount) async throws {
+        guard account.serverType.isOwncloud else {
+            throw WebDAVError.unsupported
+        }
         var request = try self.authorizedRequest(method: .proppatch, filePath: path, account: account)
         
         let body =
