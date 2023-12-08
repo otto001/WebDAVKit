@@ -102,9 +102,9 @@ extension WebDAVSession {
             throw WebDAVError.unsupported
         }
         
-        var request = try self.authorizedRequest(method: .delete,
+        let request = try self.authorizedRequest(method: .delete,
                                                  path: AbsoluteWebDAVPath(hostname: account.hostname,
-                                                                          path: shareApiPath),
+                                                                          path: shareApiPath.appending(shareId)),
                                                  ocsApiRequest: true,
                                                  account: account)
         
