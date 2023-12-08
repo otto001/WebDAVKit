@@ -34,9 +34,9 @@ extension WebDAVSession {
         
         request.addValue(absoluteDestination.path.stringRepresentation, forHTTPHeaderField: "Destination")
         
-        let (_, urlResponse) = try await self.urlSession.data(for: request)
+        let (data, urlResponse) = try await self.urlSession.data(for: request)
 
-        try WebDAVError.checkForError(response: urlResponse)
+        try WebDAVError.checkForError(response: urlResponse, data: data)
         
         return urlResponse as! HTTPURLResponse
     }

@@ -20,9 +20,9 @@ extension WebDAVSession {
     
     @discardableResult
     public func upload(request: URLRequest, data: Data) async throws -> HTTPURLResponse {
-        let (_, urlResponse) = try await self.urlSession.upload(for: request, from: data)
+        let (data, urlResponse) = try await self.urlSession.upload(for: request, from: data)
         
-        try WebDAVError.checkForError(response: urlResponse)
+        try WebDAVError.checkForError(response: urlResponse, data: data)
         
         return urlResponse as! HTTPURLResponse
     }

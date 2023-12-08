@@ -22,7 +22,7 @@ extension WebDAVSession {
     public func data(request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await self.urlSession.data(for: request)
         
-        try WebDAVError.checkForError(response: response)
+        try WebDAVError.checkForError(response: response, data: data)
         
         return (data, response as! HTTPURLResponse)
     }

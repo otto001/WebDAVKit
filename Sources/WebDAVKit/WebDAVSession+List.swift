@@ -20,7 +20,7 @@ import SWXMLHash
 extension WebDAVSession {
     
     private func getFilesFromResponse(response: URLResponse, data: Data, basePath: AbsoluteWebDAVPath, foldersFirst: Bool = true, dropFirst: Bool = false) throws -> [WebDAVFile] {
-        try WebDAVError.checkForError(response: response)
+        try WebDAVError.checkForError(response: response, data: data)
         
         guard let string = String(data: data, encoding: .utf8) else {
             throw WebDAVError.malformedResponseBody

@@ -116,7 +116,7 @@ public enum WebDAVError: LocalizedError {
 
     
     static func checkForError(response: URLResponse, data: Data? = nil) throws {
-        if let error = self.getError(from: response) {
+        if let error = self.getError(from: response, data: data) {
             throw error
         }
     }

@@ -21,9 +21,9 @@ extension WebDAVSession {
     public func delete(path: any WebDAVPathProtocol, headers: [String: String]? = nil, query: [String: String]? = nil, account: any WebDAVAccount) async throws -> HTTPURLResponse {
         let request = try self.authorizedRequest(method: .delete, filePath: path, query: query, headers: headers, account: account)
         
-        let (_, urlResponse) = try await self.urlSession.data(for: request)
+        let (data, urlResponse) = try await self.urlSession.data(for: request)
 
-        try WebDAVError.checkForError(response: urlResponse)
+        try WebDAVError.checkForError(response: urlResponse, data: data)
         
         return urlResponse as! HTTPURLResponse
     }
