@@ -30,7 +30,7 @@ public struct MimeType {
         self.subtype = subtype
     }
     
-    public init?(_ string: String) {
+    public init?(_ string: any StringProtocol) {
         let split = string.split(separator: "/", maxSplits: 1)
         guard split.count == 2 else {
             return nil
@@ -71,4 +71,38 @@ extension MimeType: RawRepresentable {
     public var rawValue: String {
         stringRepresentation
     }
+}
+
+extension MimeType {
+    static public func text(_ subtype: String) -> MimeType {
+        .init(type: "text", subtype: subtype)
+    }
+    
+    static public func application(_ subtype: String) -> MimeType {
+        .init(type: "application", subtype: subtype)
+    }
+    
+    static public func image(_ subtype: String) -> MimeType {
+        .init(type: "image", subtype: subtype)
+    }
+    
+    static public func video(_ subtype: String) -> MimeType {
+        .init(type: "video", subtype: subtype)
+    }
+    
+    static public func audio(_ subtype: String) -> MimeType {
+        .init(type: "audio", subtype: subtype)
+    }
+    
+    static public func font(_ subtype: String) -> MimeType {
+        .init(type: "font", subtype: subtype)
+    }
+    
+    static let applicationJson: MimeType = .application("json")
+    static let applicationXml: MimeType = .application("xml")
+    static let videoMp4: MimeType = .video("mp4")
+    static let videoQuicktime: MimeType = .video("quicktime")
+    static let imageJpeg: MimeType = .image("jpeg")
+    static let imagePng: MimeType = .image("png")
+    static let imageGif: MimeType = .image("gif")
 }
