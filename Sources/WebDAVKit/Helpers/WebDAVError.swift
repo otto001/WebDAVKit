@@ -166,7 +166,7 @@ public enum WebDAVError: LocalizedError {
     
     static public func getError(from response: HTTPURLResponse, data: Data? = nil) -> WebDAVError? {
         if let data = data, let url = response.url, let contentType = response.value(forHTTPHeaderField: "Content-Type") {
-            if url.relativePath.starts(with: "ocs/") {
+            if url.relativePath.starts(with: "/ocs/") {
                 return getOwnCloudError(from: response, contentType: contentType, data: data)
             }
         }
