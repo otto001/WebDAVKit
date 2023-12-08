@@ -19,7 +19,7 @@ import SWXMLHash
 import SwiftyJSON
 
 
-public enum WebDAVError: LocalizedError {
+public enum WebDAVError: Error {
     /// The credentials or path were unable to be encoded.
     /// No network request was called.
     case invalidCredentials
@@ -60,60 +60,6 @@ public enum WebDAVError: LocalizedError {
     
     /// The ownCloud api returned an error (e.g., during sharing)
     case ownCloudError(statusCode: Int, message: String?)
-    
-    public var errorDescription: String? {
-        switch self {
-
-        case .invalidCredentials:
-            return "Invalid Credentials"
-        case .unauthorized:
-            return "Unauthorized"
-        case .insufficientStorage:
-            return "Insufficient Storage"
-        case .unsupported:
-            return "Unsupported"
-        case .notFound:
-            return "Not Found"
-        case .httpErrorStatus:
-            return "Server Error"
-        case .internalError:
-            return "Internal Error"
-        case .logoutError:
-            return "Unable to logout"
-        default:
-            return nil
-        }
-    }
-    
-    public var failureReason: String? {
-        switch self {
-
-        case .invalidCredentials:
-            return "You are not logged in."
-        case .unauthorized:
-            return "You are not allowed to perform this action."
-        case .insufficientStorage:
-            return "The server does not have enough empty storage."
-        case .unsupported:
-            return "The server does not support the feature you tried to use."
-        case .notFound:
-            return "The resource you are trying to acces is not on the Server."
-        case .httpErrorStatus(let status):
-            return "Server returned http status `\(status)`."
-        case .internalError:
-            return "Internal Error."
-        default:
-            return nil
-        }
-    }
-    
-    public var recoverySuggestion: String? {
-        switch self {
-        default:
-            return nil
-        }
-    }
-
     
     static func checkForError(response: URLResponse, data: Data? = nil) throws {
         if let error = self.getError(from: response, data: data) {
