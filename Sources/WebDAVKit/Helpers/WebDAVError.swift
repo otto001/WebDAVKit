@@ -15,6 +15,9 @@
 //
 
 import Foundation
+import SWXMLHash
+import SwiftyJSON
+
 
 public enum WebDAVError: LocalizedError {
     /// The credentials or path were unable to be encoded.
@@ -54,6 +57,9 @@ public enum WebDAVError: LocalizedError {
     
     /// The body of the response of the server did not meet expectations.
     case malformedResponseBody
+    
+    /// The ownCloud api returned an error (e.g., during sharing)
+    case ownCloudError(statusCode: Int, message: String?)
     
     public var errorDescription: String? {
         switch self {
@@ -109,35 +115,75 @@ public enum WebDAVError: LocalizedError {
     }
 
     
-    static func checkForError(response: URLResponse) throws {
-        if let error = self.getError(response: response) {
+    static func checkForError(response: URLResponse, data: Data? = nil) throws {
+        if let error = self.getError(from: response) {
             throw error
         }
     }
     
-    static func getError(statusCode: Int?) -> WebDAVError? {
-        if let statusCode = statusCode {
-            switch statusCode {
-            case 200...299: // Success
-                return nil
-            case 401, 403:
-                return .unauthorized
-            case 404:
-                return .notFound
-            case 507:
-                return .insufficientStorage
-            default:
-                return .httpErrorStatus(statusCode)
-            }
-        }
-
-        return nil
-    }
-    
-    static func getError(response: URLResponse) -> WebDAVError? {
+    static public func getError(from response: URLResponse, data: Data? = nil) -> WebDAVError? {
         guard let httpResponse = response as? HTTPURLResponse else {
             return .internalError
         }
-        return getError(statusCode: httpResponse.statusCode)
+        return getError(from: httpResponse, data: data)
+    }
+    
+    static func getOwnCloudError(from response: HTTPURLResponse, contentType: String, data: Data) -> WebDAVError? {
+        if contentType.starts(with: "application/xml") == true {
+            let xml = XMLHash.parse(data)
+            let ocsMeta = xml["ocs"]["meta"]
+            
+            if let statusCode = (ocsMeta["statuscode"].element?.text).flatMap({Int($0)}) {
+                
+                switch statusCode {
+                case 200...299:
+                    return nil
+                default:
+                    return .ownCloudError(statusCode: statusCode, message: ocsMeta["message"].element?.text)
+                }
+            }
+        } else if contentType.starts(with: "application/json") == true {
+            do {
+                let json = try JSON(data: data)
+                let ocsMeta = json["ocs"]["meta"]
+                if let statusCode = ocsMeta["statuscode"].int {
+                    
+                    switch statusCode {
+                    case 200...299:
+                        return nil
+                    default:
+                        return .ownCloudError(statusCode: statusCode, message: ocsMeta["message"].string)
+                    }
+                }
+                
+            } catch {
+                return WebDAVError.malformedResponseBody
+            }
+        }
+        
+        return nil
+    }
+    
+    static public func getError(from response: HTTPURLResponse, data: Data? = nil) -> WebDAVError? {
+        if let data = data, let url = response.url, let contentType = response.value(forHTTPHeaderField: "Content-Type") {
+            if url.relativePath.starts(with: "ocs/") {
+                return getOwnCloudError(from: response, contentType: contentType, data: data)
+            }
+        }
+        
+        
+        switch response.statusCode {
+        case 200...299: // Success
+            return nil
+        case 401, 403:
+            return .unauthorized
+        case 404:
+            return .notFound
+        case 507:
+            return .insufficientStorage
+        default:
+            return .httpErrorStatus(response.statusCode)
+        }
+    
     }
 }
