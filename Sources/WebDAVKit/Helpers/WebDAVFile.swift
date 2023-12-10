@@ -52,7 +52,7 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
               let date = DateFormatter.rfc1123.date(from: dateString),
               let sizeString = properties["size"].element?.text,
               let size = Int(sizeString),
-              let etag = properties["getetag"].element?.text.replacingOccurrences(of: "\"", with: "")  else { return nil }
+              let etag = properties["getetag"].element?.text  else { return nil }
         
         let contentTypeString = properties["getcontenttype"].element?.text
         let contentType: MimeType? = contentTypeString.flatMap { .init($0) }
