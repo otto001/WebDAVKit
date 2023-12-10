@@ -29,28 +29,31 @@ public enum WebDAVError: Error {
     case insufficientStorage
     /// The server does not support this feature.
     case unsupported
-    /// 404
+    /// 404.
     case notFound
-    /// other
+    /// other.
     case httpErrorStatus(Int)
     
-    /// Cannot move item due to the origin being the same as the destination
+    /// Cannot move item due to the origin being the same as the destination.
     case originSameAsDestination
 
-    /// Something went wrong that should not have
+    /// Something went wrong that should not have.
     case internalError
     
-    /// Could not perform logout
+    /// Could not perform logout.
     case logoutError
     
-    /// The given path does not match the hostname / path of the given account
+    /// The given path does not match the hostname / path of the given account.
     case pathDoesNotMatchAccount
     
-    /// The given path cannot be expressed in a relative manner
+    /// The given path cannot be expressed in a relative manner.
     case pathsNotRelated
     
-    /// The origin and destination paths do not belong to the same hostname
+    /// The origin and destination paths do not belong to the same hostname.
     case cannotMoveAcrossHostnames
+    
+    /// The directory already exists.
+    case directoryAlreadyExists
     
     /// There was an error while building an url.
     case urlBuildingError

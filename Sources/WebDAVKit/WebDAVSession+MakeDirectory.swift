@@ -13,6 +13,10 @@ extension WebDAVSession {
                               headers: [String: String]? = nil, query: [String: String]? = nil,
                               account: any WebDAVAccount) async throws -> HTTPURLResponse {
         let request = try self.authorizedRequest(method: .mkcol, filePath: path, query: query, headers: headers, account: account)
-        return try await self.data(request: request).1
+        do {
+            return try await self.data(request: request).1
+        } catch WebDAVError.httpErrorStatus(405) {
+            throw WebDAVError.directoryAlreadyExists
+        }
     }
 }
