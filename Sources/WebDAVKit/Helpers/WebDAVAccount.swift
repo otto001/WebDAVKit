@@ -35,7 +35,7 @@ public protocol WebDAVAccount {
 public extension WebDAVAccount {
     var serverFilesPath: AbsoluteWebDAVPath {
         switch serverType {
-        case .nextcloud:
+        case .nextcloud, .owncloud:
             return AbsoluteWebDAVPath(hostname: hostname, path: .init("remote.php/dav/files/\(username)"))
         default:
             return AbsoluteWebDAVPath(hostname: hostname, path: .init(""))

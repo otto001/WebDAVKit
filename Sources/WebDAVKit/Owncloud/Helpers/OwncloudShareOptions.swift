@@ -25,6 +25,7 @@ public struct OwncloudShareOptions {
     public let hideDownload: Bool?
     public let password: WebDAVSecret?
     
+    public var label: String?
     public var note: String?
     
     private init(shareType: OwncloudShareType, shareWith: OwncloudUserID?, permissions: OwncloudPermissions,
@@ -80,6 +81,9 @@ public struct OwncloudShareOptions {
             }
         }
         
+        if let label = label {
+            parameters["label"] = label
+        }
         if let note = note {
             parameters["note"] = note
         }
