@@ -17,54 +17,29 @@
 import Foundation
 import SWXMLHash
 
-public struct WebDAVFile: Codable, Equatable, Hashable {
-    
 
+public struct WebDAVFile {
     public private(set) var path: RelativeWebDAVPath
-    public private(set) var fileId: String?
+    private var properties: [String: Any] = [:]
     
-    public private(set) var etag: String
-    public private(set) var lastModified: Date
-    
-    public private(set) var size: Int
-    public private(set) var contentType: MimeType?
-    
-    public private(set) var hasPreview: Bool?
-    
-    public var isDirectory: Bool {
-        self.contentType == nil
+    public func propery<T>(_ key: WebDAVFilePropertyKey<T>) -> T? {
+        properties[key.xmlKey] as? T
     }
     
-    public init(path: RelativeWebDAVPath, fileId: String?, lastModified: Date, size: Int, etag: String, contentType: MimeType?, hasPreview: Bool?) {
+    public mutating func setPropery<T>(_ key: WebDAVFilePropertyKey<T>, _ value: T?) {
+        properties[key.xmlKey] = value
+    }
+    
+    public mutating func setPropery<T>(_ key: WebDAVFilePropertyKey<T>, _ value: String) {
+        properties[key.xmlKey] = key.convert(value)
+    }
+    
+    public init(path: RelativeWebDAVPath) {
         self.path = path
-        self.fileId = fileId
-        self.lastModified = lastModified
-        self.size = size
-        self.etag = etag
-        self.contentType = contentType
-        self.hasPreview = hasPreview
     }
     
-    init?(xml: XMLIndexer, basePath: AbsoluteWebDAVPath) {
-        let properties = xml["propstat"][0]["prop"]
-        guard var pathString = xml["href"].element?.text,
-              let dateString = properties["getlastmodified"].element?.text,
-              let date = DateFormatter.rfc1123.date(from: dateString),
-              let sizeString = properties["size"].element?.text,
-              let size = Int(sizeString),
-              let etag = properties["getetag"].element?.text  else { return nil }
-        
-        let contentTypeString = properties["getcontenttype"].element?.text
-        let contentType: MimeType? = contentTypeString.flatMap { .init($0) }
-        
-        if contentTypeString != nil && contentType == nil {
-            // Malformed content type
-            return nil
-        }
-        
-        let fileId = properties["fileid"].element?.text
-        
-        let hasPreview: Bool? = (properties["has-preview"].element?.text).map { $0 == "true" }
+    public init?(xml: XMLIndexer, properties: [WebDAVFilePropertyKey<Any>], basePath: AbsoluteWebDAVPath) {
+        guard var pathString = xml["href"].element?.text else { return nil }
         
         if let decodedPath = pathString.removingPercentEncoding {
             pathString = decodedPath
@@ -73,46 +48,17 @@ public struct WebDAVFile: Codable, Equatable, Hashable {
         guard let webDAVPath = try? AbsoluteWebDAVPath(hostname: basePath.hostname, path: .init(pathString)).relative(to: basePath) else {
             return nil
         }
-
-        self.init(path: webDAVPath, 
-                  fileId: fileId,
-                  lastModified: date, 
-                  size: size,
-                  etag: etag, 
-                  contentType: contentType,
-                  hasPreview: hasPreview)
+        
+        self.path = webDAVPath
+        
+        let xmlProperties = xml["propstat"][0]["prop"]
+        for property in properties {
+            guard let text = xmlProperties[property.xmlKey].element?.text else { continue }
+            self.setPropery(property, text)
+        }
     }
-    
-    
-    //MARK: Public
     
     public var description: String {
-        "WebDAVFile(path: \(path), id: \(fileId ?? "nil"), isDirectory: \(isDirectory), lastModified: \(DateFormatter.rfc1123.string(from: lastModified)), size: \(size), etag: \(etag))"
-    }
-    
-    public static func sortedFiles(_ files: [WebDAVFile], foldersFirst: Bool, dropFirst: Bool) -> [WebDAVFile] {
-        var files = files
-        if dropFirst && !files.isEmpty {
-            files.removeFirst()
-        }
-        if foldersFirst {
-            files = files.filter { $0.isDirectory } + files.filter { !$0.isDirectory }
-        }
-        return files
-    }
-    
-    public static func propfindProps(hasPreview: Bool) -> String {
-        let props = """
-<d:getlastmodified />
-<d:getetag />
-<d:getcontenttype />
-<oc:fileid />
-<oc:permissions />
-<oc:size />
-\(hasPreview ? "<nc:has-preview />" : "")
-<oc:favorite />
-"""
-        
-        return props
+        "WebDAVFile(path: \(path))"
     }
 }

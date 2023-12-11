@@ -21,28 +21,24 @@ extension WebDAVSession {
     
     private func getFilesFromResponse(response: URLResponse, data: Data, 
                                       basePath: AbsoluteWebDAVPath,
-                                      foldersFirst: Bool = true, dropFirst: Bool = false) throws -> [WebDAVFile] {
+                                      properties: [WebDAVFilePropertyKey<Any>]) throws -> [WebDAVFile] {
         try WebDAVError.checkForError(response: response, data: data)
         
         guard let string = String(data: data, encoding: .utf8) else {
             throw WebDAVError.malformedResponseBody
         }
         
-        let xml = XMLHash.config { config in
-            config.shouldProcessNamespaces = true
-        }.parse(string)
+        let xml = XMLHash.parse(string)
         
-        let files = xml["multistatus"]["response"].all.compactMap { WebDAVFile(xml: $0, basePath: basePath) }
+        let files = xml["multistatus"]["response"].all.compactMap { WebDAVFile(xml: $0, properties: properties, basePath: basePath) }
         
-        let sortedFiles = WebDAVFile.sortedFiles(files, foldersFirst: foldersFirst, dropFirst: dropFirst)
-        
-        return sortedFiles
+        return files
     }
     
     public func listFiles(at path: any WebDAVPathProtocol, 
+                          properties: [WebDAVFilePropertyKey<Any>],
+                          depth: WebDAVListDepth? = nil,
                           headers: [String: String]? = nil, query: [String: String]? = nil,
-                          foldersFirst: Bool = false, dropFirst: Bool = false,
-                          depth: WebDAVListDepth? = nil, checkHasPreview: Bool = true,
                           account: any WebDAVAccount) async throws -> [WebDAVFile] {
         let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
@@ -52,12 +48,14 @@ extension WebDAVSession {
             request.addValue(depth.rawValue, forHTTPHeaderField: "Depth")
         }
         
+        let propertiesString = properties.map {"<\($0.xmlKey)>"}.joined(separator: "\n")
+        
         let body =
 """
 <?xml version="1.0"?>
 <d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
     <d:prop>
-        \(WebDAVFile.propfindProps(hasPreview: checkHasPreview))
+        \(propertiesString)
     </d:prop>
 </d:propfind>
 """
@@ -65,14 +63,13 @@ extension WebDAVSession {
         request.httpBody = body.data(using: .utf8)
         
         let (data, response) = try await self.urlSession.data(for: request)
-        return try self.getFilesFromResponse(response: response, data: data, basePath: absolutePath,
-                                             foldersFirst: foldersFirst, dropFirst: dropFirst)
+        return try self.getFilesFromResponse(response: response, data: data, basePath: absolutePath, properties: properties)
     }
     
-    public func filterFiles(at path: any WebDAVPathProtocol, 
-                            headers: [String: String]? = nil, query: [String: String]? = nil,
-                            foldersFirst: Bool = true, checkHasPreview: Bool = true,
+    public func filterFiles(at path: any WebDAVPathProtocol,
+                            properties: [WebDAVFilePropertyKey<Any>],
                             favorites: Bool? = nil,
+                            headers: [String: String]? = nil, query: [String: String]? = nil,
                             account: any WebDAVAccount) async throws -> [WebDAVFile] {
         let absolutePath = try AbsoluteWebDAVPath(filePath: path, account: account)
         
@@ -84,11 +81,13 @@ extension WebDAVSession {
         }
         let rulesString = rules.joined(separator: "\n")
         
+        let propertiesString = properties.map {"<\($0.xmlKey)>"}.joined(separator: "\n")
+        
         let body =
 """
 <oc:filter-files  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns" xmlns:ocs="http://open-collaboration-services.org/ns">
     <d:prop>
-        \(WebDAVFile.propfindProps(hasPreview: checkHasPreview))
+        \(propertiesString)
     </d:prop>
     <oc:filter-rules>
         \(rulesString)
@@ -99,9 +98,7 @@ extension WebDAVSession {
         request.httpBody = body.data(using: .utf8)
         let (data, response) = try await self.urlSession.data(for: request)
         
-        return try self.getFilesFromResponse(response: response, data: data, 
-                                             basePath: absolutePath,
-                                             foldersFirst: foldersFirst)
+        return try self.getFilesFromResponse(response: response, data: data, basePath: absolutePath, properties: properties)
         
     }
     

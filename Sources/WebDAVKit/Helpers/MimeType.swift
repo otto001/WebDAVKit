@@ -36,7 +36,7 @@ public struct MimeType {
             return nil
         }
         self.type = String(split[0])
-        self.subtype = String(split[1])
+        self.subtype = String(split[1].prefix {$0 != ";"})
     }
 }
 
@@ -74,35 +74,35 @@ extension MimeType: RawRepresentable {
 }
 
 extension MimeType {
-    static public func text(_ subtype: String) -> MimeType {
+    public static func text(_ subtype: String) -> MimeType {
         .init(type: "text", subtype: subtype)
     }
     
-    static public func application(_ subtype: String) -> MimeType {
+    public static func application(_ subtype: String) -> MimeType {
         .init(type: "application", subtype: subtype)
     }
     
-    static public func image(_ subtype: String) -> MimeType {
+    public static func image(_ subtype: String) -> MimeType {
         .init(type: "image", subtype: subtype)
     }
     
-    static public func video(_ subtype: String) -> MimeType {
+    public static func video(_ subtype: String) -> MimeType {
         .init(type: "video", subtype: subtype)
     }
     
-    static public func audio(_ subtype: String) -> MimeType {
+    public static func audio(_ subtype: String) -> MimeType {
         .init(type: "audio", subtype: subtype)
     }
     
-    static public func font(_ subtype: String) -> MimeType {
+    public static func font(_ subtype: String) -> MimeType {
         .init(type: "font", subtype: subtype)
     }
     
-    static let applicationJson: MimeType = .application("json")
-    static let applicationXml: MimeType = .application("xml")
-    static let videoMp4: MimeType = .video("mp4")
-    static let videoQuicktime: MimeType = .video("quicktime")
-    static let imageJpeg: MimeType = .image("jpeg")
-    static let imagePng: MimeType = .image("png")
-    static let imageGif: MimeType = .image("gif")
+    public static let applicationJson: MimeType = .application("json")
+    public static let applicationXml: MimeType = .application("xml")
+    public static let videoMp4: MimeType = .video("mp4")
+    public static let videoQuicktime: MimeType = .video("quicktime")
+    public static let imageJpeg: MimeType = .image("jpeg")
+    public static let imagePng: MimeType = .image("png")
+    public static let imageGif: MimeType = .image("gif")
 }
