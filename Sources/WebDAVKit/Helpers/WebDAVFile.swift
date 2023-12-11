@@ -30,8 +30,8 @@ public struct WebDAVFile {
         properties[key.xmlKey] = value
     }
     
-    public mutating func setPropery<T>(_ key: WebDAVFilePropertyKey<T>, _ value: String) {
-        properties[key.xmlKey] = key.convert(value)
+    public mutating func setPropery<T>(_ key: WebDAVFilePropertyKey<T>, _ value: String?) {
+        properties[key.xmlKey] = value.flatMap { key.convert($0) }
     }
     
     public init(path: RelativeWebDAVPath) {
