@@ -56,10 +56,13 @@ extension WebDAVSession {
     /// - Returns: A RemoteFileWalkResult of found files and skipped directories
     private func _listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, didChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
 
-        let files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
+        var files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
+        files.removeFirst { file in
+            file.path.relativePath == "/"
+        }
         // FIXME: use resourcetype
         let subDirectories = files.filter { file in
-            file.propery(.contentType) == nil && file.path.relativePath != "/"
+            file.propery(.contentType) == nil
         }
         
         var result = WebDAVFindChangedDirectoriesResult()
