@@ -59,7 +59,7 @@ extension WebDAVSession {
         let files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
         // FIXME: use resourcetype
         let subDirectories = files.filter { file in
-            file.propery(.contentType) == nil && file.path.absolutePath != directory
+            file.propery(.contentType) == nil && file.path.relativePath != "/"
         }
         
         var result = WebDAVFindChangedDirectoriesResult()
@@ -76,7 +76,7 @@ extension WebDAVSession {
                 }
                 // if a subdirectory did change its etag, we walk it and its subdirectories by recursion
                 group.addTask {
-                    return try await self._listFilesOfChangedDirectories(directory: directory, properties: properties, account: account, didChange: didChange)
+                    return try await self._listFilesOfChangedDirectories(directory: .init(subDirectory.path), properties: properties, account: account, didChange: didChange)
                 }
             }
             
