@@ -21,7 +21,7 @@ extension WebDAVSession {
     
     private func getFilesFromResponse(response: URLResponse, data: Data, 
                                       basePath: AbsoluteWebDAVPath,
-                                      properties: [WebDAVFilePropertyKey<Any>]) throws -> [WebDAVFile] {
+                                      properties: [WebDAVFilePropertyFetchKey]) throws -> [WebDAVFile] {
         try WebDAVError.checkForError(response: response, data: data)
         
         guard let string = String(data: data, encoding: .utf8) else {
@@ -36,7 +36,7 @@ extension WebDAVSession {
     }
     
     public func listFiles(at path: any WebDAVPathProtocol, 
-                          properties: [WebDAVFilePropertyKey<Any>],
+                          properties: [WebDAVFilePropertyFetchKey],
                           depth: WebDAVListDepth? = nil,
                           headers: [String: String]? = nil, query: [String: String]? = nil,
                           account: any WebDAVAccount) async throws -> [WebDAVFile] {
@@ -67,7 +67,7 @@ extension WebDAVSession {
     }
     
     public func filterFiles(at path: any WebDAVPathProtocol,
-                            properties: [WebDAVFilePropertyKey<Any>],
+                            properties: [WebDAVFilePropertyFetchKey],
                             favorites: Bool? = nil,
                             headers: [String: String]? = nil, query: [String: String]? = nil,
                             account: any WebDAVAccount) async throws -> [WebDAVFile] {

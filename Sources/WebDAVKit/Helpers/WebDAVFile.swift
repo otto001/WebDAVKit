@@ -34,11 +34,24 @@ public struct WebDAVFile {
         properties[key.xmlKey] = string.flatMap { key.convert($0) }
     }
     
+    public mutating func setPropery(_ key: WebDAVFilePropertyFetchKey, from string: String?) {
+        properties[key.xmlKey] = string.flatMap { key.convert($0) }
+    }
+    
+    subscript<T>(_ key: WebDAVFilePropertyKey<T>) -> T? {
+        get {
+            propery(key)
+        }
+        set {
+            setPropery(key, newValue)
+        }
+    }
+    
     public init(path: RelativeWebDAVPath) {
         self.path = path
     }
     
-    public init?(xml: XMLIndexer, properties: [WebDAVFilePropertyKey<Any>], basePath: AbsoluteWebDAVPath) {
+    public init?(xml: XMLIndexer, properties: [WebDAVFilePropertyFetchKey], basePath: AbsoluteWebDAVPath) {
         guard var pathString = xml["href"].element?.text else { return nil }
         
         if let decodedPath = pathString.removingPercentEncoding {
