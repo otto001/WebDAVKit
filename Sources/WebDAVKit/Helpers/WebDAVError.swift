@@ -64,6 +64,9 @@ public enum WebDAVError: Error {
     /// The ownCloud api returned an error (e.g., during sharing)
     case ownCloudError(statusCode: Int, message: String?)
     
+    /// The etag of the directory being inspected changed in between the requests, making the result invalid.
+    case etagChangedDuringIteration
+    
     static func checkForError(response: URLResponse, data: Data? = nil) throws {
         if let error = self.getError(from: response, data: data) {
             throw error

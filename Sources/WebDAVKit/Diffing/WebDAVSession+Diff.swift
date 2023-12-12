@@ -103,7 +103,23 @@ extension WebDAVSession {
             properties.append(.contentType)
         }
         
-        return try await self._listFilesOfChangedDirectories(directory: directory, properties: properties, account: account, didChange: didChange)
+        guard let rootDirectory = try await self.listFiles(at: directory, properties: [.etag], account: account).first else {
+            throw WebDAVError.notFound
+        }
+        guard didChange(rootDirectory) else {
+            return .init(files: [], unchangedDirectories: [rootDirectory])
+        }
+        
+        let result = try await self._listFilesOfChangedDirectories(directory: directory, properties: properties, account: account, didChange: didChange)
+        
+        guard let rootDirectoryAfterwards = try await self.listFiles(at: directory, properties: [.etag], account: account).first else {
+            throw WebDAVError.notFound
+        }
+        guard rootDirectory[.etag] == rootDirectoryAfterwards[.etag] else {
+            throw WebDAVError.etagChangedDuringIteration
+        }
+        
+        return result
     }
     
     public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> RemoteFilesDiff {
