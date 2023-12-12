@@ -103,7 +103,7 @@ extension WebDAVSession {
             properties.append(.contentType)
         }
         
-        guard let rootDirectory = try await self.listFiles(at: directory, properties: [.etag], account: account).first else {
+        guard let rootDirectory = try await self.listFiles(at: directory, properties: [.etag], depth: .zero, account: account).first else {
             throw WebDAVError.notFound
         }
         guard didChange(rootDirectory) else {
@@ -112,7 +112,7 @@ extension WebDAVSession {
         
         let result = try await self._listFilesOfChangedDirectories(directory: directory, properties: properties, account: account, didChange: didChange)
         
-        guard let rootDirectoryAfterwards = try await self.listFiles(at: directory, properties: [.etag], account: account).first else {
+        guard let rootDirectoryAfterwards = try await self.listFiles(at: directory, properties: [.etag], depth: .zero, account: account).first else {
             throw WebDAVError.notFound
         }
         guard rootDirectory[.etag] == rootDirectoryAfterwards[.etag] else {

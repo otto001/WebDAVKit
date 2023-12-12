@@ -35,7 +35,7 @@ private let _ownCloudOwnerDisplayName: WebDAVFilePropertyKey<String> = .init(xml
 private let _ownCloudPermissions: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:permissions")
 private let _ownCloudSize: WebDAVFilePropertyKey<Int> = .init(xmlKey: "oc:size")
 
-private let _nextcloudHasPreview: WebDAVFilePropertyKey<Bool> = .init(xmlKey: "ns:has-preview")
+private let _nextcloudHasPreview: WebDAVFilePropertyKey<Bool> = .init(xmlKey: "nc:has-preview")
 
 
 public class WebDAVFilePropertyKey<T> {

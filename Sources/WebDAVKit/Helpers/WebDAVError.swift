@@ -84,15 +84,13 @@ public enum WebDAVError: Error {
         if contentType.starts(with: "application/xml") == true {
             let xml = XMLHash.parse(data)
             // TODO: check namespacing!
-            let ocsMeta = xml["oc:ocs"]["oc:meta"]
-            
-            if let statusCode = (ocsMeta["oc:statuscode"].element?.text).flatMap({Int($0)}) {
+            if let statusCode = ( xml["oc:ocs"]["oc:meta"]["oc:statuscode"].element?.text).flatMap({Int($0)}) {
                 
                 switch statusCode {
                 case 200...299:
                     return nil
                 default:
-                    return .ownCloudError(statusCode: statusCode, message: ocsMeta["oc:message"].element?.text)
+                    return .ownCloudError(statusCode: statusCode, message:  xml["oc:ocs"]["oc:meta"]["oc:message"].element?.text)
                 }
             }
         } else if contentType.starts(with: "application/json") == true {
