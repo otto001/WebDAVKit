@@ -52,7 +52,7 @@ public struct WebDAVFile {
     }
     
     public init?(xml: XMLIndexer, properties: [WebDAVFilePropertyFetchKey], basePath: AbsoluteWebDAVPath) {
-        guard var pathString = xml["href"].element?.text else { return nil }
+        guard var pathString = xml["d:href"].element?.text else { return nil }
         
         if let decodedPath = pathString.removingPercentEncoding {
             pathString = decodedPath
@@ -64,7 +64,7 @@ public struct WebDAVFile {
         
         self.path = webDAVPath
         
-        let xmlProperties = xml["propstat"][0]["prop"]
+        let xmlProperties = xml["d:propstat"][0]["d:prop"]
         for property in properties {
             guard let text = xmlProperties[property.xmlKey].element?.text else { continue }
             self.setPropery(property, from: text)

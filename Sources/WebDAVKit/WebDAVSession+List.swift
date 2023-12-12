@@ -30,7 +30,7 @@ extension WebDAVSession {
         
         let xml = XMLHash.parse(string)
         
-        let files = xml["multistatus"]["response"].all.compactMap { WebDAVFile(xml: $0, properties: properties, basePath: basePath) }
+        let files = xml["d:multistatus"]["d:response"].all.compactMap { WebDAVFile(xml: $0, properties: properties, basePath: basePath) }
         
         return files
     }
