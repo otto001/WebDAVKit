@@ -48,7 +48,7 @@ extension WebDAVSession {
             request.addValue(depth.rawValue, forHTTPHeaderField: "Depth")
         }
         
-        let propertiesString = properties.map {"<\($0.xmlKey)>"}.joined(separator: "\n")
+        let propertiesString = properties.map {"<\($0.xmlKey) />"}.joined(separator: "\n")
         
         let body =
 """
@@ -81,7 +81,7 @@ extension WebDAVSession {
         }
         let rulesString = rules.joined(separator: "\n")
         
-        let propertiesString = properties.map {"<\($0.xmlKey)>"}.joined(separator: "\n")
+        let propertiesString = properties.map {"<\($0.xmlKey) />"}.joined(separator: "\n")
         
         let body =
 """
