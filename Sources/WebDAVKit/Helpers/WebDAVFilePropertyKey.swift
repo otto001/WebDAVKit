@@ -72,29 +72,39 @@ extension WebDAVFilePropertyKey where T == MimeType {
     }
 }
 
-extension WebDAVFilePropertyKey {
-    
-    public static var lastModified: WebDAVFilePropertyKey<Date> { _lastModified }
-    public static var etag: WebDAVFilePropertyKey<String> { _etag }
-    public static var contentType: WebDAVFilePropertyKey<MimeType> { _contentType }
-    public static var resourcetype: WebDAVFilePropertyKey<String> { _resourcetype }
-    public static var contentLength: WebDAVFilePropertyKey<Int> { _contentLength }
-    
-    /// The fileid namespaced by the instance id, globally unique
-    public static var ownCloudId: WebDAVFilePropertyKey<String> { _ownCloudId }
-    public static var ownCloudFileId: WebDAVFilePropertyKey<String> { _ownCloudFileId }
-    public static var ownCloudFavorite: WebDAVFilePropertyKey<Bool> { _ownCloudFavorite }
-    public static var ownCloudOwnerId: WebDAVFilePropertyKey<String> { _ownCloudOwnerId }
-    public static var ownCloudOwnerDisplayName: WebDAVFilePropertyKey<String> { _ownCloudOwnerDisplayName }
-    public static var ownCloudPermissions: WebDAVFilePropertyKey<String> { _ownCloudPermissions }
-    /// Unlike getcontentlength, this property also works for folders reporting the size of everything in the folder.
-    public static var ownCloudSize: WebDAVFilePropertyKey<Int> { _ownCloudSize }
-    
-    public static var nextcloudHasPreview: WebDAVFilePropertyKey<Bool> { _nextcloudHasPreview }
+extension WebDAVFilePropertyKey where T == Date {
+    public static var lastModified: WebDAVFilePropertyKey { _lastModified }
+}
+
+extension WebDAVFilePropertyKey where T == MimeType {
+    public static var contentType: WebDAVFilePropertyKey { _contentType }
+}
+
+extension WebDAVFilePropertyKey where T == Int {
+    public static var contentLength: WebDAVFilePropertyKey { _contentLength }
+    public static var ownCloudSize: WebDAVFilePropertyKey { _ownCloudSize }
 }
 
 
-public class WebDAVFilePropertyFetchKey {
+extension WebDAVFilePropertyKey where T == Bool {
+    public static var ownCloudFavorite: WebDAVFilePropertyKey { _ownCloudFavorite }
+    public static var nextcloudHasPreview: WebDAVFilePropertyKey { _nextcloudHasPreview }
+}
+
+
+extension WebDAVFilePropertyKey where T == String {
+    public static var etag: WebDAVFilePropertyKey { _etag }
+    public static var resourcetype: WebDAVFilePropertyKey { _resourcetype }
+    
+    public static var ownCloudId: WebDAVFilePropertyKey { _ownCloudId }
+    public static var ownCloudFileId: WebDAVFilePropertyKey { _ownCloudFileId }
+    public static var ownCloudOwnerId: WebDAVFilePropertyKey { _ownCloudOwnerId }
+    public static var ownCloudOwnerDisplayName: WebDAVFilePropertyKey { _ownCloudOwnerDisplayName }
+    public static var ownCloudPermissions: WebDAVFilePropertyKey { _ownCloudPermissions }
+}
+
+
+public struct WebDAVFilePropertyFetchKey: Hashable, Equatable {
     public let xmlKey: String
     public let convert: (_ text: String) -> Any?
     
@@ -103,9 +113,21 @@ public class WebDAVFilePropertyFetchKey {
         self.convert = convert
     }
     
-    public convenience init<T>(_ key: WebDAVFilePropertyKey<T>) {
+    public init<T>(_ key: WebDAVFilePropertyKey<T>) {
         self.init(xmlKey: key.xmlKey, convert: key.convert)
     }
+    
+    public static func == (lhs: WebDAVFilePropertyFetchKey, rhs: WebDAVFilePropertyFetchKey) -> Bool {
+        lhs.xmlKey == rhs.xmlKey
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(xmlKey)
+    }
+    
+}
+
+extension WebDAVFilePropertyFetchKey {
     
     public static let lastModified: WebDAVFilePropertyFetchKey = .init(.lastModified)
     public static let etag: WebDAVFilePropertyFetchKey = .init(.etag)
