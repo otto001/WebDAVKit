@@ -1,26 +1,14 @@
-//
-//  File.swift
-//  
-//
-//  Created by Matteo Ludwig on 11.12.23.
-//
-
-import Foundation
 
 
-/// Represents files found on the remote.
-/// If a directory did not change (i.e. its etag is equal to its cached etag), its files are not included in the files array, but the directory will be included in skippedDirectories.
 public struct WebDAVFindChangedDirectoriesResult {
     
-    /// Files found on remote. Does not include all files of remote since directories might be skipped (see unchangedDirectories).
     public var files = [WebDAVFile]()
     
-    /// Directories that were skipped while walking the filesystem of the remote because their etag did not change
     public var unchangedDirectories = [WebDAVFile]()
 }
 
-public struct RemoteFilesDiff {
-    public struct FileChange {
+public struct WebDAVFilesDiff {
+    public struct UpdatedFile {
         public let localFile: WebDAVFile
         public let remoteFile: WebDAVFile
         
@@ -39,69 +27,69 @@ public struct RemoteFilesDiff {
         }
     }
     
-    /// Files found on the remote that are not saved as an IndexedAssetModel
     public var new = [WebDAVFile]()
 
-    /// Files found on the remote that have either changed their content or path ore were previously deleted and now restored (or a comibnation of those)
-    public var changed = [FileChange]()
+    public var updated = [UpdatedFile]()
     
-    /// IndexedAssetModels that are saved locally but are no longer on the remote
     public var deleted = [WebDAVFile]()
+    
+    
+    public var isEmpty: Bool {
+        new.isEmpty && updated.isEmpty && deleted.isEmpty
+    }
 }
 
 extension WebDAVSession {
 
-    /// Creates a RemoteFileWalkResult using WebDAV requests to walk the directory and its subdirectory.
-    /// - Parameter directory: The directory to walk.
-    /// - Returns: A RemoteFileWalkResult of found files and skipped directories
     private func _listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, didChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
 
-        var files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
-        files.removeFirst { file in
-            file.path.relativePath == "/"
-        }
+        let files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
         // FIXME: use resourcetype
-        let subDirectories = files.filter { file in
-            file.propery(.contentType) == nil
-        }
+        var changedSubDirectories: [WebDAVFile] = []
         
         var result = WebDAVFindChangedDirectoriesResult()
+        for file in files {
+            if file[.contentType] != nil {
+                result.files.append(file)
+            } else if didChange(file) {
+                if file.path.relativePath != "/" {
+                    changedSubDirectories.append(file)
+                }
+                result.files.append(file)
+            } else {
+                result.unchangedDirectories.append(file)
+            }
+        }
         
         // recusively walk subdirectories
         let recursiveWalkResult = try await withThrowingTaskGroup(of: WebDAVFindChangedDirectoriesResult.self) { group in
-            var subResult = WebDAVFindChangedDirectoriesResult()
+            var recursiveWalkResult = WebDAVFindChangedDirectoriesResult()
             
-            for subDirectory in subDirectories {
-                // skip subdirectories that have not changed their etag
-                guard didChange(subDirectory) else {
-                    subResult.unchangedDirectories.append(subDirectory)
-                    continue
-                }
+            for subDirectory in changedSubDirectories {
                 // if a subdirectory did change its etag, we walk it and its subdirectories by recursion
                 group.addTask {
-                    return try await self._listFilesOfChangedDirectories(directory: .init(subDirectory.path), properties: properties, account: account, didChange: didChange)
+                    var subResult = try await self._listFilesOfChangedDirectories(directory: .init(subDirectory.path), properties: properties, account: account, didChange: didChange)
+                    subResult.files.removeFirst { element in
+                        element.path.relativePath == "/"
+                    }
+                    return subResult
                 }
             }
             
-            // combine results of subdirectories into a single result
-            subResult = try await group.reduce(into: subResult) { partialResult, walkResult in
-                partialResult.files.append(contentsOf: walkResult.files)
-                partialResult.unchangedDirectories.append(contentsOf: walkResult.unchangedDirectories)
+            for try await subResult in group {
+                recursiveWalkResult.files.append(contentsOf: subResult.files)
+                recursiveWalkResult.unchangedDirectories.append(contentsOf: subResult.unchangedDirectories)
             }
             
-            return subResult
+            return recursiveWalkResult
         }
         
         // combine result of directory and its subdirectory
-        result.files.append(contentsOf: files)
         result.files.append(contentsOf: recursiveWalkResult.files)
         result.unchangedDirectories.append(contentsOf: recursiveWalkResult.unchangedDirectories)
         return result
     }
     
-    /// Creates a RemoteFileWalkResult using WebDAV requests to walk the directory and its subdirectory.
-    /// - Parameter directory: The directory to walk.
-    /// - Returns: A RemoteFileWalkResult of found files and skipped directories
     public func listFilesOfChangedDirectories(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, didChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
         var properties = properties
         if !properties.contains(.contentType) {
@@ -127,7 +115,7 @@ extension WebDAVSession {
         return result
     }
     
-    public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> RemoteFilesDiff {
+    public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> WebDAVFilesDiff {
         var pathToLocalFile = Dictionary(localFiles.map {($0.path, $0)}) {a, b in
             a
         }
@@ -135,18 +123,13 @@ extension WebDAVSession {
             pathToLocalFile[file.path]?.propery(.etag) != file[.etag]
         }
         pathToLocalFile = pathToLocalFile.filter { (filePath, _) in
-            remoteChangedFiles.unchangedDirectories.allSatisfy { $0.path.isSubpath(of: filePath) }
+            remoteChangedFiles.unchangedDirectories.allSatisfy { !$0.path.isSubpath(of: filePath) }
         }
         return Self._diff(pathToLocalFile: pathToLocalFile, remoteFiles: remoteChangedFiles.files)
     }
     
-    // Figures out what changed on the remote compared to the local database.
-    /// - Parameter remoteFiles: The files currently on the remote.
-    /// - Parameter timestamp: A timestamp of when the request that resulted in given remoteFiles was started.
-    /// - Parameter ignoredDirectories: IndexedAssetModels from directories in this array will not be deleted, even when not included in remoteFiles.
-    /// - Returns: A RemoteChanges struct describing the changes on the remote.
-    private static func _diff(pathToLocalFile: [RelativeWebDAVPath: WebDAVFile], remoteFiles: [WebDAVFile]) -> RemoteFilesDiff {
-        var result = RemoteFilesDiff()
+    private static func _diff(pathToLocalFile: [RelativeWebDAVPath: WebDAVFile], remoteFiles: [WebDAVFile]) -> WebDAVFilesDiff {
+        var result = WebDAVFilesDiff()
         
         var etagToLocalFile = Dictionary(grouping: pathToLocalFile.values.compactMap { (file: WebDAVFile) -> (String, WebDAVFile)? in
             guard let etag = file[.etag] else { return nil }
@@ -160,9 +143,8 @@ extension WebDAVSession {
         }) {a, b in
             a
         }
+        // TODO: Check that resource type stayed the same!
         
-        
-        // A set of IndexedAssetModels that must not be deleted (i.e. file was moved, changed, etc...)
         var deletedPaths = Set<RelativeWebDAVPath>(pathToLocalFile.keys)
         
         for remoteFile in remoteFiles {
@@ -171,8 +153,8 @@ extension WebDAVSession {
                 // This is the "best case". Since the fileId is guaranteed to be unique, we can now determine what happened to the file.
                 deletedPaths.remove(localFile.path)
                 
-                if let fileChange = RemoteFilesDiff.FileChange(localFile: localFile, remoteFile: remoteFile) {
-                    result.changed.append(fileChange)
+                if let fileChange = WebDAVFilesDiff.UpdatedFile(localFile: localFile, remoteFile: remoteFile) {
+                    result.updated.append(fileChange)
                 }
             } else if let remoteEtag = remoteFile[.etag], var etagMatches = etagToLocalFile[remoteEtag], !etagMatches.isEmpty {
                 if let localFile = etagMatches.removeFirst(where: { $0.path == remoteFile.path }) {
@@ -183,7 +165,7 @@ extension WebDAVSession {
                     let localFile = etagMatches.removeFirst()
                     deletedPaths.remove(localFile.path)
                     
-                    result.changed.append(.init(localFile: localFile, remoteFile: remoteFile)!)
+                    result.updated.append(.init(localFile: localFile, remoteFile: remoteFile)!)
                 }
                 
                 etagToLocalFile[remoteEtag] = etagMatches
@@ -192,8 +174,8 @@ extension WebDAVSession {
                 // We found a file with the same path, but the content may have been changed
                 deletedPaths.remove(localFile.path)
                 
-                if let fileChange = RemoteFilesDiff.FileChange(localFile: localFile, remoteFile: remoteFile) {
-                    result.changed.append(fileChange)
+                if let fileChange = WebDAVFilesDiff.UpdatedFile(localFile: localFile, remoteFile: remoteFile) {
+                    result.updated.append(fileChange)
                 }
             } else {
                 // If there is not original with matching fileId, etag or path, the file is new
@@ -207,13 +189,8 @@ extension WebDAVSession {
         
         return result
     }
-    
-    /// Figures out what changed on the remote compared to the local database.
-    /// - Parameter remoteFiles: The files currently on the remote.
-    /// - Parameter timestamp: A timestamp of when the request that resulted in given remoteFiles was started.
-    /// - Parameter ignoredDirectories: IndexedAssetModels from directories in this array will not be deleted, even when not included in remoteFiles.
-    /// - Returns: A RemoteChanges struct describing the changes on the remote.
-    public static func diff(localFiles: [WebDAVFile], remoteFiles: [WebDAVFile]) -> RemoteFilesDiff {
+
+    public static func diff(localFiles: [WebDAVFile], remoteFiles: [WebDAVFile]) -> WebDAVFilesDiff {
         let pathToLocalFile = Dictionary(localFiles.map {($0.path, $0)}) {a, b in
             a
         }
