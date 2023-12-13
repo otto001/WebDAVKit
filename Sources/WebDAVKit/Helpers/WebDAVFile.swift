@@ -38,7 +38,7 @@ public struct WebDAVFile {
         properties[key.xmlKey] = string.flatMap { key.convert($0) }
     }
     
-    subscript<T>(_ key: WebDAVFilePropertyKey<T>) -> T? {
+    public subscript<T>(_ key: WebDAVFilePropertyKey<T>) -> T? {
         get {
             propery(key)
         }
