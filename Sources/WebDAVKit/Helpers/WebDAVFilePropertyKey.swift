@@ -28,7 +28,7 @@ private let _resourcetype: WebDAVFilePropertyKey<String> = .init(xmlKey: "d:reso
 private let _contentLength: WebDAVFilePropertyKey<Int> = .init(xmlKey: "d:getcontentlength")
 
 private let _ownCloudId: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:id")
-private let _ownCloudFileId: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:fileId")
+private let _ownCloudFileId: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:fileid")
 private let _ownCloudFavorite: WebDAVFilePropertyKey<Bool> = .init(xmlKey: "oc:favorite")
 private let _ownCloudOwnerId: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:owner-id")
 private let _ownCloudOwnerDisplayName: WebDAVFilePropertyKey<String> = .init(xmlKey: "oc:owner-display-name")

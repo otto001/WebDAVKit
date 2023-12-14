@@ -116,6 +116,7 @@ extension WebDAVSession {
     }
     
     public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> WebDAVFilesDiff {
+        // TODO: enforce minimal set of properties (etag, contentLength, contentType)
         var pathToLocalFile = Dictionary(localFiles.map {($0.path, $0)}) {a, b in
             a
         }
@@ -156,7 +157,9 @@ extension WebDAVSession {
                 if let fileChange = WebDAVFilesDiff.UpdatedFile(localFile: localFile, remoteFile: remoteFile) {
                     result.updated.append(fileChange)
                 }
+                
             } else if let remoteEtag = remoteFile[.etag], var etagMatches = etagToLocalFile[remoteEtag], !etagMatches.isEmpty {
+                // TODO: check contentLength in addition to etag!
                 if let localFile = etagMatches.removeFirst(where: { $0.path == remoteFile.path }) {
                     // Path and Etag are equal, nothing happened to this file
                     deletedPaths.remove(localFile.path)
