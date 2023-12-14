@@ -29,8 +29,8 @@ extension WebDAVSession {
         urlComponents.queryItems = []
         
         if let size = previewOptions.size {
-            urlComponents.queryItems!.append(URLQueryItem(name: "x", value: "\(size.width)"))
-            urlComponents.queryItems!.append(URLQueryItem(name: "y", value: "\(size.height)"))
+            urlComponents.queryItems!.append(URLQueryItem(name: "x", value: "\(Int(size.width))"))
+            urlComponents.queryItems!.append(URLQueryItem(name: "y", value: "\(Int(size.height))"))
         }
         
         if previewOptions.contentMode == .fill {
@@ -41,8 +41,8 @@ extension WebDAVSession {
         if let fileId = fileId {
             urlComponents.queryItems!.append(URLQueryItem(name: "fileId", value: fileId))
         } else if let filePath = filePath {
-            let absolutePath = try AbsoluteWebDAVPath(filePath: filePath, account: account)
-            urlComponents.queryItems!.append(URLQueryItem(name: "file", value: absolutePath.path.stringRepresentation))
+            let relativePath = try AbsoluteWebDAVPath(filePath: filePath, account: account).relative(to: account.serverFilesPath)
+            urlComponents.queryItems!.append(URLQueryItem(name: "file", value: relativePath.relativePath.stringRepresentation))
         }
         
         guard let url = urlComponents.url else {
