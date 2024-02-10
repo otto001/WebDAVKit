@@ -80,14 +80,16 @@ public extension AbsoluteWebDAVPathProtocol {
     var fileName: String? {
         guard let lastPathComponent = self.lastPathComponent else { return nil }
 
-        let filenameEndIdx = lastPathComponent.firstIndex(of: ".") ?? lastPathComponent.endIndex
-
+        var filenameEndIdx = lastPathComponent.firstIndex(of: ".") ?? lastPathComponent.endIndex
+        if filenameEndIdx == lastPathComponent.startIndex {
+            filenameEndIdx = lastPathComponent.endIndex
+        }
         return String(lastPathComponent[..<filenameEndIdx])
     }
 
     var fileExtension: String? {
         guard let lastPathComponent = self.lastPathComponent else { return nil }
-        if let dotIdx = lastPathComponent.firstIndex(of: ".") {
+        if let dotIdx = lastPathComponent[lastPathComponent.index(after: lastPathComponent.startIndex)..<lastPathComponent.endIndex].firstIndex(of: ".") {
             let extensionStartIdx = lastPathComponent.index(dotIdx, offsetBy: 1)
             guard extensionStartIdx != lastPathComponent.endIndex else { return nil }
             return String(lastPathComponent[extensionStartIdx...])
