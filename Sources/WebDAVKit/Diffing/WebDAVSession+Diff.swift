@@ -227,7 +227,7 @@ extension Array {
 
 extension Array where Element == WebDAVFile {
     mutating func removeFilesFromDirectories(directories: [WebDAVFile]) {
-        
+        guard !directories.isEmpty && !isEmpty else { return }
         self.sort {
             $0.path.path < $1.path.path
         }
@@ -239,21 +239,35 @@ extension Array where Element == WebDAVFile {
         
         var fileIndex = 0
         var directoryIndex = 0
-        var isInDirectory: Bool = false
-        while fileIndex < self.endIndex {
-            if directories[directoryIndex].path.isSubpath(of: self[fileIndex].path) {
-                isInDirectory = true
-            } else {
-                if isInDirectory {
-                    isInDirectory = false
-                    directoryIndex += 1
-                }
-                result.append(self[fileIndex])
-            }
+
+        while fileIndex < self.endIndex && directoryIndex < directories.endIndex {
             
-            fileIndex += 1
+            let filePath = self[fileIndex].path.absolutePath
+            let directoryPath = directories[directoryIndex].path.absolutePath
+            
+            if filePath == directoryPath {
+                fileIndex += 1
+                while fileIndex < self.endIndex && self[fileIndex].path.isSuperpath(of: directoryPath) {
+                    fileIndex += 1
+                }
+            } else if filePath > directoryPath {
+                directoryIndex += 1
+            } else {
+                result.append(self[fileIndex])
+                fileIndex += 1
+            }
+        }
+        
+        if fileIndex < self.endIndex {
+            result.append(contentsOf: self[fileIndex...])
         }
         
         self = result
+    }
+    
+    func removingFilesFromDirectories(directories: [WebDAVFile]) -> Self {
+        var copy = self
+        copy.removeFilesFromDirectories(directories: directories)
+        return copy
     }
 }
