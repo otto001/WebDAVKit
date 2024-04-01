@@ -43,6 +43,9 @@ extension WebDAVSession {
         } else if let filePath = filePath {
             let relativePath = try AbsoluteWebDAVPath(filePath: filePath, account: account).relative(to: account.serverFilesPath)
             urlComponents.queryItems!.append(URLQueryItem(name: "file", value: relativePath.relativePath.stringRepresentation))
+            
+            // For some reasong, when using the api with a filename, the api path needs to have a .png appended. It does not always return a png tho :)
+            urlComponents.path.append(".png")
         }
         
         guard let url = urlComponents.url else {
