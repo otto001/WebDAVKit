@@ -41,7 +41,7 @@ public struct WebDAVFilesDiff {
 
 extension WebDAVSession {
 
-    private func _listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, didChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
+    private func _listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, directoryDidChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
 
         let files = try await self.listFiles(at: directory, properties: properties, depth: .one, account: account)
         // FIXME: use resourcetype
@@ -51,7 +51,7 @@ extension WebDAVSession {
         for file in files {
             if file[.contentType] != nil {
                 result.files.append(file)
-            } else if didChange(file) {
+            } else if directoryDidChange(file) {
                 if file.path.relativePath != "/" {
                     changedSubDirectories.append(file)
                 }
@@ -68,7 +68,7 @@ extension WebDAVSession {
             for subDirectory in changedSubDirectories {
                 // if a subdirectory did change its etag, we walk it and its subdirectories by recursion
                 group.addTask {
-                    var subResult = try await self._listFilesOfChangedDirectories(directory: .init(subDirectory.path), properties: properties, account: account, didChange: didChange)
+                    var subResult = try await self._listFilesOfChangedDirectories(directory: .init(subDirectory.path), properties: properties, account: account, directoryDidChange: directoryDidChange)
                     subResult.files.removeFirst { element in
                         element.path.relativePath == "/"
                     }
@@ -90,7 +90,7 @@ extension WebDAVSession {
         return result
     }
     
-    public func listFilesOfChangedDirectories(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, didChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
+    public func listFilesOfChangedDirectories(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], account: any WebDAVAccount, directoryDidChange: @escaping (_ file: WebDAVFile) -> Bool) async throws -> WebDAVFindChangedDirectoriesResult {
         var properties = properties
         if !properties.contains(.contentType) {
             properties.append(.contentType)
@@ -99,11 +99,11 @@ extension WebDAVSession {
         guard let rootDirectory = try await self.listFiles(at: directory, properties: [.etag], depth: .zero, account: account).first else {
             throw WebDAVError.notFound
         }
-        guard didChange(rootDirectory) else {
+        guard directoryDidChange(rootDirectory) else {
             return .init(files: [], unchangedDirectories: [rootDirectory])
         }
         
-        let result = try await self._listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath(directory), properties: properties, account: account, didChange: didChange)
+        let result = try await self._listFilesOfChangedDirectories(directory: AbsoluteWebDAVPath(directory), properties: properties, account: account, directoryDidChange: directoryDidChange)
         
         guard let rootDirectoryAfterwards = try await self.listFiles(at: directory, properties: [.etag], depth: .zero, account: account).first else {
             throw WebDAVError.notFound
@@ -117,14 +117,18 @@ extension WebDAVSession {
     
     public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> WebDAVFilesDiff {
         // TODO: enforce minimal set of properties (etag, contentLength, contentType)
-        var pathToLocalFile = Dictionary(localFiles.map {($0.path, $0)}) {a, b in
+        var pathToLocalDirectory = Dictionary(localFiles.filter { $0.propery(.contentType) == nil }.map {($0.path, $0)}) {a, b in
             a
         }
         let remoteChangedFiles = try await self.listFilesOfChangedDirectories(directory: directory, properties: properties, account: account) { file in
-            pathToLocalFile[file.path]?.propery(.etag) != file[.etag]
+            pathToLocalDirectory[file.path]?.propery(.etag) != file[.etag]
         }
-        pathToLocalFile = pathToLocalFile.filter { (filePath, _) in
-            remoteChangedFiles.unchangedDirectories.allSatisfy { !$0.path.isSubpath(of: filePath) }
+        
+        var localChangedFiles = localFiles
+        localChangedFiles.removeFilesFromDirectories(directories: remoteChangedFiles.unchangedDirectories)
+        
+        let pathToLocalFile = Dictionary(localChangedFiles.map {($0.path, $0)}) {a, b in
+            a
         }
         return Self._diff(pathToLocalFile: pathToLocalFile, remoteFiles: remoteChangedFiles.files)
     }
@@ -218,5 +222,38 @@ extension Array {
             return self.remove(at: index)
         }
         return nil
+    }
+}
+
+extension Array where Element == WebDAVFile {
+    mutating func removeFilesFromDirectories(directories: [WebDAVFile]) {
+        
+        self.sort {
+            $0.path.path < $1.path.path
+        }
+        let directories = directories.sorted {
+            $0.path.path < $1.path.path
+        }
+        
+        var result: [WebDAVFile] = []
+        
+        var fileIndex = 0
+        var directoryIndex = 0
+        var isInDirectory: Bool = false
+        while fileIndex < self.endIndex {
+            if directories[directoryIndex].path.isSubpath(of: self[fileIndex].path) {
+                isInDirectory = true
+            } else {
+                if isInDirectory {
+                    isInDirectory = false
+                    directoryIndex += 1
+                }
+                result.append(self[fileIndex])
+            }
+            
+            fileIndex += 1
+        }
+        
+        self = result
     }
 }

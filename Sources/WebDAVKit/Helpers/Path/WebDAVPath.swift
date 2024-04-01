@@ -43,6 +43,11 @@ public struct WebDAVPath: WebDAVPathProtocol {
         self._stringRepresentation = Self.sanitize(stringRepresentation)
     }
     
+    /// Initializes a new path with the given path components.
+    public init(_ pathComponents: [String]) {
+        self._stringRepresentation = Self.sanitize(pathComponents.joined(separator: "/"))
+    }
+    
     /// The path components of the path. Created by splitting the string representation at every `/`.
     public var pathComponents: [String] {
         self._stringRepresentation.split(separator: "/").map {String($0)}

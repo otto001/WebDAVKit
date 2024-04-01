@@ -100,11 +100,14 @@ public extension AbsoluteWebDAVPathProtocol {
     func isSubpath(of superPath: any AbsoluteWebDAVPathProtocol) -> Bool {
         guard self.hostname == superPath.hostname else { return false }
         
-        let ownPathComponents = self.pathComponents
-        let otherPathComponents = superPath.pathComponents
-        guard ownPathComponents.count <= otherPathComponents.count else { return false }
+        let ownPathString = self.path.stringRepresentation
+        let otherPathString = superPath.path.stringRepresentation
         
-        return ownPathComponents.enumerated().allSatisfy { $0.element == otherPathComponents[$0.offset] }
+        guard ownPathString.count > 1 else { return true }
+        guard ownPathString.count < otherPathString.count else { return false }
+        
+        let matchEndIndex = otherPathString.index(otherPathString.startIndex, offsetBy: ownPathString.count)
+        return ownPathString == otherPathString[..<matchEndIndex] && otherPathString[matchEndIndex] == "/"
     }
 
      func isSuperpath(of subPath: any AbsoluteWebDAVPathProtocol) -> Bool {

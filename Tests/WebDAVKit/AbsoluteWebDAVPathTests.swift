@@ -36,4 +36,44 @@ final class AbsoluteWebDAVPathTests: XCTestCase {
         XCTAssertEqual(AbsoluteWebDAVPath(string: "cloud.com/a/b/.c")!.fileExtension, nil)
         XCTAssertEqual(AbsoluteWebDAVPath(string: "cloud.com/a/b/.fileName")!.fileExtension, nil)
     }
+    
+    func testIsSubpath() {
+        let path1 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc")!
+        let path2 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        let path3 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/ccccccccccc/dddddddddd")!
+        let path4 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/yy/cccccccccccc/dddddddddd")!
+        let path5 = AbsoluteWebDAVPath(string: "cloud.de/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        let path6 = AbsoluteWebDAVPath(string: "cloud.com/")!
+        
+        XCTAssertFalse(path1.isSubpath(of: path1))
+        
+        XCTAssertTrue(path1.isSubpath(of: path2))
+        XCTAssertFalse(path2.isSubpath(of: path1))
+        
+        XCTAssertFalse(path1.isSubpath(of: path3))
+        XCTAssertFalse(path3.isSubpath(of: path1))
+        
+        XCTAssertFalse(path1.isSubpath(of: path4))
+        XCTAssertFalse(path4.isSubpath(of: path1))
+        
+        XCTAssertFalse(path1.isSubpath(of: path5))
+        XCTAssertFalse(path5.isSubpath(of: path1))
+        
+        XCTAssertFalse(path1.isSubpath(of: path6))
+        XCTAssertTrue(path6.isSubpath(of: path1))
+    }
+    
+    func testIsSubpathPerformance() {
+        let path1 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc")!
+        let path2 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        let path3 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/yy/cccccccccccc/dddddddddd")!
+        let path4 = AbsoluteWebDAVPath(string: "cloud.de/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        self.measure {
+            for _ in 0..<10_000 {
+                _ = path1.isSubpath(of: path2)
+                _ = path1.isSubpath(of: path3)
+                _ = path1.isSubpath(of: path4)
+            }
+        }
+    }
 }
