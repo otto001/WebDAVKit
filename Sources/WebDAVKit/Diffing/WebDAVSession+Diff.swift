@@ -150,6 +150,10 @@ extension WebDAVSession {
             pathToLocalDirectory[file.path]?.propery(.etag) != file[.etag]
         }
         
+        guard !remoteChangedFiles.files.isEmpty else {
+            return .init()
+        }
+        
         self.signposter?.emitEvent("start build file tree")
         
         var localChangedFilesTree = try WebDAVFileTree(localFiles, basePath: directory)
