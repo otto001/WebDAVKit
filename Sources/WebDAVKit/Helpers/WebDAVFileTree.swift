@@ -158,17 +158,9 @@ struct WebDAVFileTree {
      /// - Parameter path: The path of the file. Must be below the base path of the tree.
      /// - Returns: The file at the given path if it exists.
     subscript(_ path: any AbsoluteWebDAVPathProtocol) -> WebDAVFile? {
-        get {
-            guard path.isSuperpath(of: basePath) || AbsoluteWebDAVPath(path) == basePath else {
-                fatalError("path is not below basePath of FileTree")
-            }
-            return node(pathComponents: path.path.pathComponents)?.file
-        }
-        mutating set {
-            guard path.isSuperpath(of: basePath) || AbsoluteWebDAVPath(path) == basePath else {
-                fatalError("path is not below basePath of FileTree")
-            }
-            self[path.path.pathComponents] = newValue
+        get throws {
+            let relativePath = try path.relative(to: self.basePath)
+            return node(pathComponents: relativePath.relativePath.pathComponents)?.file
         }
     }
     
@@ -196,21 +188,17 @@ struct WebDAVFileTree {
     
     /// Removes the subtree at a given path. The file at the given path is removed, as well as all its children.
     /// - Parameter path: The path of the file. Must be below the base path of the tree.
-    mutating func removeSubtree(_ path: any AbsoluteWebDAVPathProtocol) {
-        guard path.isSuperpath(of: basePath) || AbsoluteWebDAVPath(path) == basePath else {
-            fatalError("path is not below basePath of FileTree")
-        }
+    mutating func removeSubtree(_ path: any AbsoluteWebDAVPathProtocol) throws {
+        let relativePath = try path.relative(to: self.basePath)
         
-        self.removeSubtree(path.path)
+        self.removeSubtree(relativePath.relativePath)
     }
     
     /// Inserts a file into the tree. The file is inserted at its path. If a file already exists at that path, it is replaced.
     /// - Parameter file: The file to insert. The file must be below the base path of the tree.
-    mutating func insert(_ file: WebDAVFile) {
-        guard file.path.isSuperpath(of: basePath) || file.path.absolutePath == basePath else {
-            fatalError("File is not below basePath of FileTree")
-        }
-        self[file.path.path] = file
+    mutating func insert(_ file: WebDAVFile) throws {
+        let relativePath = try file.path.relative(to: self.basePath)
+        self[relativePath.relativePath] = file
     }
 }
 
@@ -326,10 +314,10 @@ extension WebDAVFileTree {
     /// Creates a new file tree with a given base path and files.
     /// - Parameters: files: The files to insert into the tree. The files must be below the base path of the tree.
     /// - Parameters: basePath: The base path of the tree. All files in the tree are below this path.
-    init(_ files: [WebDAVFile], basePath: any AbsoluteWebDAVPathProtocol) {
+    init(_ files: [WebDAVFile], basePath: any AbsoluteWebDAVPathProtocol) throws {
         self = .init(basePath: basePath)
         for file in files {
-            self.insert(file)
+            try self.insert(file)
         }
     }
 }

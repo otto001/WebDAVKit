@@ -100,14 +100,14 @@ public extension AbsoluteWebDAVPathProtocol {
     func isSubpath(of superPath: any AbsoluteWebDAVPathProtocol) -> Bool {
         guard self.hostname == superPath.hostname else { return false }
         
-        let ownPathString = self.path.stringRepresentation
-        let otherPathString = superPath.path.stringRepresentation
+        let subPathString = self.path.stringRepresentation
+        let superPathString = superPath.path.stringRepresentation
         
-        guard ownPathString.count > 1 else { return true }
-        guard ownPathString.count < otherPathString.count else { return false }
+        guard subPathString.count > 1 else { return true }
+        guard subPathString.count < superPathString.count else { return false }
         
-        let matchEndIndex = otherPathString.index(otherPathString.startIndex, offsetBy: ownPathString.count)
-        return ownPathString == otherPathString[..<matchEndIndex] && otherPathString[matchEndIndex] == "/"
+        let matchEndIndex = superPathString.index(superPathString.startIndex, offsetBy: subPathString.count)
+        return subPathString == superPathString[..<matchEndIndex] && superPathString[matchEndIndex] == "/"
     }
 
      func isSuperpath(of subPath: any AbsoluteWebDAVPathProtocol) -> Bool {
@@ -115,23 +115,21 @@ public extension AbsoluteWebDAVPathProtocol {
      }
     
     func relative(to subPath: any AbsoluteWebDAVPathProtocol) throws -> RelativeWebDAVPath {
-        guard self.hostname == subPath.hostname else {
-            throw WebDAVError.pathsNotRelated
+        
+        guard self.hostname == subPath.hostname else { throw WebDAVError.pathsNotRelated }
+        
+        let subPathString = subPath.path.stringRepresentation
+        let superPathString = self.path.stringRepresentation
+        
+        guard subPathString.count > 1 else {
+            return RelativeWebDAVPath(relativePath: self.path, relativeTo: subPath)
         }
         
-        let pathComponents = self.pathComponents
-        let subPathComponents = subPath.pathComponents
+        guard subPathString.count <= superPathString.count else { throw WebDAVError.pathsNotRelated }
         
-        guard pathComponents.count >= subPathComponents.count else {
-            throw WebDAVError.pathsNotRelated
-        }
+        let matchEndIndex = superPathString.index(superPathString.startIndex, offsetBy: subPathString.count)
+        guard subPathString == superPathString[..<matchEndIndex] && (matchEndIndex == superPathString.endIndex || superPathString[matchEndIndex] == "/") else { throw WebDAVError.pathsNotRelated }
         
-        guard subPathComponents.enumerated().allSatisfy({ $0.element == pathComponents[$0.offset] }) else {
-            throw WebDAVError.pathsNotRelated
-        }
-        
-        let relativePath = pathComponents[subPathComponents.count...].joined(separator: "/")
-        
-        return RelativeWebDAVPath(relativePath: .init(relativePath), relativeTo: subPath)
+        return RelativeWebDAVPath(relativePath: .init(superPathString[matchEndIndex...]), relativeTo: subPath)
     }
 }

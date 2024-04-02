@@ -76,4 +76,35 @@ final class AbsoluteWebDAVPathTests: XCTestCase {
             }
         }
     }
+    
+    func testRelativeTo() {
+        let path1 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc")!
+        let path2 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        let path3 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/ccccccccccc/dddddddddd")!
+        let path4 = AbsoluteWebDAVPath(string: "cloud.com")!
+        
+        XCTAssertNoThrow(XCTAssertEqual(try path1.relative(to: path1), RelativeWebDAVPath(relativePath: "", relativeTo: path1)))
+        XCTAssertNoThrow(XCTAssertEqual(try path2.relative(to: path1), RelativeWebDAVPath(relativePath: "dddddddddd", relativeTo: path1)))
+        XCTAssertNoThrow(XCTAssertEqual(try path2.relative(to: path4), RelativeWebDAVPath(relativePath: "/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd", relativeTo: path4)))
+        XCTAssertNoThrow(XCTAssertEqual(try path1.relative(to: path4), RelativeWebDAVPath(relativePath: "/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc", relativeTo: path4)))
+        XCTAssertThrowsError(try path1.relative(to: path2))
+        XCTAssertThrowsError(try path3.relative(to: path1))
+    }
+    
+    func testRelativeToPerformance() {
+        let path1 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc")!
+        let path2 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
+        let path3 = AbsoluteWebDAVPath(string: "cloud.com/aaaaaaaaaaaa/bbbbbbbbbbb/ccccccccccc/dddddddddd")!
+        let path4 = AbsoluteWebDAVPath(string: "cloud.com")!
+        
+        self.measure {
+            for _ in 0..<10_000 {
+                _ = try? path2.relative(to: path1)
+                _ = try? path2.relative(to: path4)
+                _ = try? path1.relative(to: path4)
+                _ = try? path1.relative(to: path2)
+                _ = try? path3.relative(to: path1)
+            }
+        }
+    }
 }
