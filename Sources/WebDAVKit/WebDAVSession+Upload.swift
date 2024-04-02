@@ -30,6 +30,18 @@ extension WebDAVSession {
         return urlResponse as! HTTPURLResponse
     }
     
+    /// Uploads the data with the given request.
+    /// - Parameters: request: The request to upload the data with.
+    /// - Parameters: fileURL: The file URL from which to upload the data.
+    /// - Returns: The response.
+    @discardableResult public func upload(request: URLRequest, fromFile fileURL: URL) async throws -> HTTPURLResponse {
+        let (data, urlResponse) = try await self.urlSession.upload(for: request, fromFile: fileURL)
+        
+        try WebDAVError.checkForError(response: urlResponse, data: data)
+        
+        return urlResponse as! HTTPURLResponse
+    }
+    
     /// Uploads the data to the given path.
     /// - Parameters: path: The path to upload the data to.
     /// - Parameters: data: The data to upload.
@@ -55,5 +67,33 @@ extension WebDAVSession {
         }
         
         return try await upload(request: request, data: data)
+    }
+    
+
+    /// Uploads the data to the given path.
+    /// - Parameters: path: The path to upload the data to.
+    /// - Parameters: fileURL: The file URL from which to upload the data.
+    /// - Parameters: contentType: The content type of the data.
+    /// - Parameters: headers: Any additional headers to use for the request.
+    /// - Parameters: query: The query to use for the request.
+    /// - Parameters: modifiedTime: The modified time of the file. Only used for Owncloud/Nextcloud.
+    /// - Parameters: account: The account used to authorize the request.
+    @discardableResult public func upload(to path: any WebDAVPathProtocol,
+                                          fromFile fileURL: URL, contentType: MimeType,
+                                          headers: [String: String]? = nil, query: [String: String]? = nil,
+                                          modifiedTime: Date?,
+                                          account: any WebDAVAccount) async throws -> HTTPURLResponse {
+        
+        var request = try self.authorizedRequest(method: .put, filePath: path,
+                                                 query: query, headers: headers,
+                                                 contentType: contentType,
+                                                 ocsApiRequest: account.serverType.isOwncloud && modifiedTime != nil,
+                                                 account: account)
+
+        if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
+            request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
+        }
+        
+        return try await upload(request: request, fromFile: fileURL)
     }
 }
