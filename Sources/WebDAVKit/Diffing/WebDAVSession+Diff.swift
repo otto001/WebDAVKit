@@ -1,3 +1,20 @@
+//
+//  WebDAVSession+Diff.swift
+//  WebDAVKit
+//
+//  Created by Matteo Ludwig on 29.11.23.
+//  Licensed under the MIT-License included in the project.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+
+import OSLog
 
 
 public struct WebDAVFindChangedDirectoriesResult {
@@ -117,19 +134,33 @@ extension WebDAVSession {
     
     public func diff(directory: any AbsoluteWebDAVPathProtocol, properties: [WebDAVFilePropertyFetchKey], localFiles: [WebDAVFile], account: any WebDAVAccount) async throws -> WebDAVFilesDiff {
         // TODO: enforce minimal set of properties (etag, contentLength, contentType)
-        var pathToLocalDirectory = Dictionary(localFiles.filter { $0.propery(.contentType) == nil }.map {($0.path, $0)}) {a, b in
+        let signposterState = self.signposter?.beginInterval("diff")
+        defer {
+            if let signposterState = signposterState {
+                self.signposter?.endInterval("diff", signposterState)
+            }
+        }
+        
+        let pathToLocalDirectory = Dictionary(localFiles.filter { $0.propery(.contentType) == nil }.map {($0.path, $0)}) {a, b in
             a
         }
+        
+        self.signposter?.emitEvent("listFilesOfChangedDirectories start")
         let remoteChangedFiles = try await self.listFilesOfChangedDirectories(directory: directory, properties: properties, account: account) { file in
             pathToLocalDirectory[file.path]?.propery(.etag) != file[.etag]
         }
         
-        var localChangedFiles = localFiles
-        localChangedFiles.removeFilesFromDirectories(directories: remoteChangedFiles.unchangedDirectories)
+        self.signposter?.emitEvent("start build file tree")
         
-        let pathToLocalFile = Dictionary(localChangedFiles.map {($0.path, $0)}) {a, b in
+        var localChangedFilesTree = WebDAVFileTree(localFiles, basePath: directory)
+        for unchangedDirectory in remoteChangedFiles.unchangedDirectories {
+            localChangedFilesTree.removeSubtree(unchangedDirectory.path)
+        }
+        
+        let pathToLocalFile = Dictionary(localChangedFilesTree.map {($0.path, $0)}) {a, b in
             a
         }
+        self.signposter?.emitEvent("starting building diff")
         return Self._diff(pathToLocalFile: pathToLocalFile, remoteFiles: remoteChangedFiles.files)
     }
     
@@ -222,52 +253,5 @@ extension Array {
             return self.remove(at: index)
         }
         return nil
-    }
-}
-
-extension Array where Element == WebDAVFile {
-    mutating func removeFilesFromDirectories(directories: [WebDAVFile]) {
-        guard !directories.isEmpty && !isEmpty else { return }
-        self.sort {
-            $0.path.path < $1.path.path
-        }
-        let directories = directories.sorted {
-            $0.path.path < $1.path.path
-        }
-        
-        var result: [WebDAVFile] = []
-        
-        var fileIndex = 0
-        var directoryIndex = 0
-
-        while fileIndex < self.endIndex && directoryIndex < directories.endIndex {
-            
-            let filePath = self[fileIndex].path.absolutePath
-            let directoryPath = directories[directoryIndex].path.absolutePath
-            
-            if filePath == directoryPath {
-                fileIndex += 1
-                while fileIndex < self.endIndex && self[fileIndex].path.isSuperpath(of: directoryPath) {
-                    fileIndex += 1
-                }
-            } else if filePath > directoryPath {
-                directoryIndex += 1
-            } else {
-                result.append(self[fileIndex])
-                fileIndex += 1
-            }
-        }
-        
-        if fileIndex < self.endIndex {
-            result.append(contentsOf: self[fileIndex...])
-        }
-        
-        self = result
-    }
-    
-    func removingFilesFromDirectories(directories: [WebDAVFile]) -> Self {
-        var copy = self
-        copy.removeFilesFromDirectories(directories: directories)
-        return copy
     }
 }

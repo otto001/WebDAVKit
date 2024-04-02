@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import OSLog
 
 
 public class WebDAVSession {
@@ -24,8 +25,16 @@ public class WebDAVSession {
     /// The URLSession used for all requests.
     let urlSession: URLSession
     
+    /// The logger used for all log messages.
+    let logger: Logger?
+    
+    /// The signposter used for all signposts.
+    let signposter: OSSignposter?
+    
     /// Creates a new WebDAVSession.
-    public init() {
+    public init(logger: Logger? = nil) {
+        self.logger = logger
+        self.signposter = logger.map { OSSignposter(logger: $0)}
         self.urlSession = URLSession(configuration: .ephemeral)
     }
 }
