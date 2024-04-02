@@ -79,10 +79,10 @@ struct WebDAVFileTree {
     }
     
     /// The root node of the tree.
-    private var rootNode: Node
+    private var rootNode: Node? = nil
 
     /// The number of files in the tree.
-    private(set) var count: Int = 1
+    private(set) var count: Int = 0
 
     /// The base path of the tree. All files in the tree are below this path.
     let basePath: AbsoluteWebDAVPath
@@ -91,14 +91,14 @@ struct WebDAVFileTree {
     /// - Parameter basePath: The base path of the tree. All files in the tree are below this path.
     init(basePath: any AbsoluteWebDAVPathProtocol) {
         self.basePath = AbsoluteWebDAVPath(basePath)
-        self.rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
+        //self.rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
     }
     
     /// Returns the node at a given path. Returns nil if the node does not exist.
     /// - Parameter pathComponents: The path components of the node.
     /// - Returns: The node at the given path if it exists.
     private func node(pathComponents: [String]) -> Node? {
-        var iter = rootNode
+        guard var iter = rootNode else { return nil }
         for nextComponent in pathComponents {
             guard let next = iter.children[nextComponent] else {
                 return nil
@@ -113,7 +113,11 @@ struct WebDAVFileTree {
     /// - Parameter pathComponents: The path components of the node.
     /// - Returns: The node at the given path.
     mutating private func makeNode(pathComponents: [String]) -> Node {
-        var iter = rootNode
+        if rootNode == nil {
+            rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
+            count = 1
+        }
+        var iter = rootNode!
         for nextComponent in pathComponents {
             if let next = iter.children[nextComponent] {
                 iter = next
@@ -168,8 +172,8 @@ struct WebDAVFileTree {
     /// - Parameter pathComponents: The path components of the file to remove.
     mutating func removeSubtree(_ pathComponents: [String]) {
         if pathComponents.isEmpty {
-            rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
-            count = 1
+            rootNode = nil
+            count = 0
         } else if let node = node(pathComponents: pathComponents) {
             node.parent = nil
             count -= 1

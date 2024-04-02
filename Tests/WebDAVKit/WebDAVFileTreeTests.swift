@@ -27,7 +27,7 @@ final class WebDAVFileTreeTests: XCTestCase {
         
         var tree = WebDAVFileTree(basePath: Self.basePath)
         
-        XCTAssertNoThrow(XCTAssertEqual(try tree[folder1.path]?.path, folder1.path))
+        XCTAssertNoThrow(XCTAssertNil(try tree[folder1.path]?.path))
         XCTAssertNoThrow(try tree.insert(folder1))
         XCTAssertEqual(tree.count, 1)
         XCTAssertNoThrow(XCTAssertEqual(try tree[folder1.path]?.path, folder1.path))
@@ -61,7 +61,7 @@ final class WebDAVFileTreeTests: XCTestCase {
     func testInsertOutOfOrder() throws {
         
         var tree = WebDAVFileTree(basePath: Self.basePath)
-        XCTAssertNoThrow(XCTAssertEqual(try tree[folder1.path]?.path, folder1.path))
+        XCTAssertNoThrow(XCTAssertNil(try tree[folder1.path]?.path))
         
         XCTAssertNoThrow(XCTAssertNil(try tree[file2.path]?.path))
         XCTAssertNoThrow(try tree.insert(file2))
