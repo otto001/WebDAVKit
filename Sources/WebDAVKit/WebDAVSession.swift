@@ -32,9 +32,9 @@ public class WebDAVSession {
     let signposter: OSSignposter?
     
     /// Creates a new WebDAVSession.
-    public init(logger: Logger? = nil) {
+    public init(urlSession: URLSession? = nil, logger: Logger? = nil) {
         self.logger = logger
         self.signposter = logger.map { OSSignposter(logger: $0)}
-        self.urlSession = URLSession(configuration: .ephemeral)
+        self.urlSession = urlSession ?? URLSession(configuration: .ephemeral)
     }
 }
