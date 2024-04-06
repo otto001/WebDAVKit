@@ -16,6 +16,8 @@
 
 import Foundation
 
+public typealias WebDAVRequestModifyClosure = (_ request: inout URLRequest) -> Void
+
 extension WebDAVSession {
     
     /// Uploads the data with the given request.
@@ -55,7 +57,8 @@ extension WebDAVSession {
                                           data: Data, contentType: MimeType,
                                           headers: [String: String]? = nil, query: [String: String]? = nil,
                                           modifiedTime: Date?,
-                                          account: any WebDAVAccount) async throws -> HTTPURLResponse {
+                                          account: any WebDAVAccount,
+                                          modifyRequest: WebDAVRequestModifyClosure?) async throws -> HTTPURLResponse {
         
         var request = try self.authorizedRequest(method: .put, filePath: path,
                                                  query: query, headers: headers,
@@ -66,6 +69,8 @@ extension WebDAVSession {
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
             request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
         }
+        
+        modifyRequest?(&request)
         
         return try await upload(request: request, data: data)
     }
@@ -82,9 +87,10 @@ extension WebDAVSession {
     /// - Returns: The Http response.
     @discardableResult public func upload(to path: any WebDAVPathProtocol,
                                           fromFile fileURL: URL, contentType: MimeType,
-                                          headers: [String: String]? = nil, query: [String: String]? = nil,
+                                          headers: [String:  String]? = nil, query: [String: String]? = nil,
                                           modifiedTime: Date?,
-                                          account: any WebDAVAccount) async throws -> HTTPURLResponse {
+                                          account: any WebDAVAccount,
+                                          modifyRequest: WebDAVRequestModifyClosure?) async throws -> HTTPURLResponse {
         
         var request = try self.authorizedRequest(method: .put, filePath: path,
                                                  query: query, headers: headers,
@@ -95,6 +101,8 @@ extension WebDAVSession {
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
             request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
         }
+        
+        modifyRequest?(&request)
         
         return try await upload(request: request, fromFile: fileURL)
     }
@@ -113,7 +121,8 @@ extension WebDAVSession {
                                  fromFile fileURL: URL, contentType: MimeType,
                                  headers: [String: String]? = nil, query: [String: String]? = nil,
                                  modifiedTime: Date?,
-                                 account: any WebDAVAccount) throws -> URLSessionUploadTask {
+                                 account: any WebDAVAccount,
+                                 modifyRequest: WebDAVRequestModifyClosure?) throws -> URLSessionUploadTask {
         
         var request = try self.authorizedRequest(method: .put, filePath: path,
                                                  query: query, headers: headers,
@@ -124,6 +133,8 @@ extension WebDAVSession {
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
             request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
         }
+        
+        modifyRequest?(&request)
         
         return self.urlSession.uploadTask(with: request, fromFile: fileURL)
     }
