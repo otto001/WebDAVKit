@@ -45,7 +45,7 @@ final class AbsoluteWebDAVPathTests: XCTestCase {
         let path5 = AbsoluteWebDAVPath(string: "cloud.de/aaaaaaaaaaaa/bbbbbbbbbbb/cccccccccccc/dddddddddd")!
         let path6 = AbsoluteWebDAVPath(string: "cloud.com/")!
         
-        XCTAssertFalse(path1.isSubpath(of: path1))
+        XCTAssertTrue(path1.isSubpath(of: path1))
         
         XCTAssertTrue(path1.isSubpath(of: path2))
         XCTAssertFalse(path2.isSubpath(of: path1))

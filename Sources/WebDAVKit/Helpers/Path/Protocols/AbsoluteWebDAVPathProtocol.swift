@@ -103,6 +103,10 @@ public extension AbsoluteWebDAVPathProtocol {
         let subPathString = self.path.stringRepresentation
         let superPathString = superPath.path.stringRepresentation
         
+        if subPathString.count == superPathString.count {
+            return subPathString == superPathString
+        }
+        
         guard subPathString.count > 1 else { return true }
         guard subPathString.count < superPathString.count else { return false }
         
