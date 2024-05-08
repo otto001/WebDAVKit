@@ -49,7 +49,7 @@ extension WebDAVSession {
         guard account.serverType.isOwncloud else {
             throw WebDAVError.unsupported
         }
-        var request = try self.authorizedRequest(method: .post, path: AbsoluteWebDAVPath(hostname: account.hostname, path:  "/ocs/v2.php/apps/dav/api/v1/direct"), contentType: .applicationJson, accept: [.applicationJson], account: account)
+        var request = try self.authorizedRequest(method: .post, path: AbsoluteWebDAVPath(hostname: account.hostname, path:  "/ocs/v2.php/apps/dav/api/v1/direct"), contentType: .applicationJson, accept: [.applicationJson], ocsApiRequest: true, account: account)
        
         let parameters = ["fileId": fileId]
         request.httpBody = try JSON(parameters).rawData()
