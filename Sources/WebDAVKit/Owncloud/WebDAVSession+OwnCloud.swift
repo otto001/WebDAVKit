@@ -15,27 +15,11 @@
 //
 
 import Foundation
+import SwiftyJSON
+
 
 extension WebDAVSession {
-//    func ownCloudBaseURL(for baseURL: URL) -> URL? {
-//        guard baseURL.absoluteString.lowercased().contains("remote.php/dav/files/"),
-//              let index = baseURL.pathComponents.map({ $0.lowercased() }).firstIndex(of: "remote.php") else {
-//                  return nil
-//              }
-//        
-//        var result = baseURL
-//        for _ in 0 ..< baseURL.pathComponents.count - index {
-//            result.deleteLastPathComponent()
-//        }
-//        
-//        return result
-//            .appendingPathComponent("apps/files/api/v1/files")
-//    }
-//    
-//    func ownCloudURL(for path: WebDAVPath, account: any WebDAVAccount) -> URL? {
-//        return self.ownCloudBaseURL(for: account.path.url)?.appendingPathComponent("path")
-//    }
-//    
+
     public func owncloudSetFavorite(for path: any WebDAVPathProtocol, favorite: Bool, account: any WebDAVAccount) async throws {
         guard account.serverType.isOwncloud else {
             throw WebDAVError.unsupported
@@ -56,10 +40,27 @@ extension WebDAVSession {
         
         request.httpBody = body.data(using: .utf8)
         
-        let (_, response) = try await self.urlSession.data(for: request)
+        let (data, response) = try await self.urlSession.data(for: request)
 
-        if let response = response as? HTTPURLResponse, !(200...299 ~= response.statusCode) {
-            throw URLError(URLError.Code(rawValue: response.statusCode))
+        try WebDAVError.checkForError(response: response, data: data)
+    }
+    
+    public func owncloudDirectLink(fileId: String, account: any WebDAVAccount) async throws -> URL {
+        guard account.serverType.isOwncloud else {
+            throw WebDAVError.unsupported
         }
+        var request = try self.authorizedRequest(method: .post, path: AbsoluteWebDAVPath(hostname: account.hostname, path:  "/ocs/v2.php/apps/dav/api/v1/direct"), contentType: .applicationJson, accept: [.applicationJson], account: account)
+       
+        let parameters = ["fileId": fileId]
+        request.httpBody = try JSON(parameters).rawData()
+        
+        let (responseData, response) = try await self.urlSession.data(for: request)
+        try WebDAVError.checkForError(response: response, data: responseData)
+        
+        guard let urlString = (JSON(responseData)["ocs"]["data"]["url"]).string, let url = URL(string: urlString) else {
+            throw WebDAVError.malformedResponseBody
+        }
+        
+        return url
     }
 }
