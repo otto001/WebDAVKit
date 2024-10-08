@@ -6,13 +6,9 @@
 //
 //  Source: https://github.com/nextcloud/NextcloudKit
 
-private let requestBodyLivephoto =
-    """
-    
-    """
 
 extension WebDAVSession {
-    func setLivephoto(imagePath: any WebDAVPathProtocol, videoPath: (any WebDAVPathProtocol)?, account: any WebDAVAccount) async throws {
+    public func nextcloudSetLivephoto(imagePath: any WebDAVPathProtocol, videoPath: (any WebDAVPathProtocol)?, account: any WebDAVAccount) async throws {
         guard account.serverType == .nextcloud else {
             throw WebDAVError.unsupported
         }
