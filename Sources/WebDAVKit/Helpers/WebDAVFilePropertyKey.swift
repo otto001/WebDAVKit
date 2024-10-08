@@ -36,6 +36,7 @@ private let _ownCloudPermissions: WebDAVFilePropertyKey<String> = .init(xmlKey: 
 private let _ownCloudSize: WebDAVFilePropertyKey<Int> = .init(xmlKey: "oc:size")
 
 private let _nextcloudHasPreview: WebDAVFilePropertyKey<Bool> = .init(xmlKey: "nc:has-preview")
+private let _nextcloudLivePhotoFile: WebDAVFilePropertyKey<String> = .init(xmlKey: "nc:metadata-files-live-photo")
 
 
 public class WebDAVFilePropertyKey<T> {
@@ -101,6 +102,8 @@ extension WebDAVFilePropertyKey where T == String {
     public static var ownCloudOwnerId: WebDAVFilePropertyKey { _ownCloudOwnerId }
     public static var ownCloudOwnerDisplayName: WebDAVFilePropertyKey { _ownCloudOwnerDisplayName }
     public static var ownCloudPermissions: WebDAVFilePropertyKey { _ownCloudPermissions }
+    
+    public static var nextcloudLivePhotoFile: WebDAVFilePropertyKey { _nextcloudLivePhotoFile }
 }
 
 
@@ -146,5 +149,6 @@ extension WebDAVFilePropertyFetchKey {
     public static let ownCloudSize: WebDAVFilePropertyFetchKey = .init(.ownCloudSize)
     
     public static let nextcloudHasPreview: WebDAVFilePropertyFetchKey = .init(.nextcloudHasPreview)
+    public static let nextcloudLivePhotoFile: WebDAVFilePropertyFetchKey = .init(.nextcloudLivePhotoFile)
 }
 
