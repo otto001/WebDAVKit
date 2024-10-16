@@ -67,7 +67,7 @@ extension WebDAVSession {
                                                  account: account)
 
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
-            request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
+            request.setModifiedTimeHeader(modifiedTime)
         }
         
         modifyRequest?(&request)
@@ -99,7 +99,7 @@ extension WebDAVSession {
                                                  account: account)
 
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
-            request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
+            request.setModifiedTimeHeader(modifiedTime)
         }
         
         modifyRequest?(&request)
@@ -131,11 +131,19 @@ extension WebDAVSession {
                                                  account: account)
 
         if let modifiedTime = modifiedTime, account.serverType.isOwncloud {
-            request.addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
+            request.setModifiedTimeHeader(modifiedTime)
         }
         
         modifyRequest?(&request)
         
         return self.urlSession.uploadTask(with: request, fromFile: fileURL)
+    }
+}
+
+private extension URLRequest {
+    mutating func setModifiedTimeHeader(_ modifiedTime: Date) {
+        if Int(modifiedTime.timeIntervalSince1970) > 0 {
+            addValue("\(Int(modifiedTime.timeIntervalSince1970))", forHTTPHeaderField: "X-OC-Mtime")
+        }
     }
 }
