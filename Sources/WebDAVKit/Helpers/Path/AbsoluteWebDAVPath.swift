@@ -60,7 +60,7 @@ public struct AbsoluteWebDAVPath {
         self.hostname = String(splitString[0])
         
         if splitString.count == 2 {
-            self.path = .init(splitString[1])
+            self.path = .init(String(splitString[1]))
         } else {
             self.path = ""
         }
