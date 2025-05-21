@@ -19,7 +19,7 @@ import SWXMLHash
 import SwiftyJSON
 
 
-public enum WebDAVError: Error {
+public enum WebDAVError: Error, Sendable {
     /// The credentials or path were unable to be encoded.
     /// No network request was called.
     case invalidCredentials

@@ -18,9 +18,9 @@ import Foundation
 import SWXMLHash
 
 
-public struct WebDAVFile {
+public struct WebDAVFile: Sendable {
     public private(set) var path: RelativeWebDAVPath
-    private var properties: [String: Any] = [:]
+    private var properties: [String: any Sendable] = [:]
     
     public func propery<T>(_ key: WebDAVFilePropertyKey<T>) -> T? {
         properties[key.xmlKey] as? T

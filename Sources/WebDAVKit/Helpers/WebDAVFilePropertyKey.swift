@@ -39,36 +39,40 @@ private let _nextcloudHasPreview: WebDAVFilePropertyKey<Bool> = .init(xmlKey: "n
 private let _nextcloudLivePhotoFile: WebDAVFilePropertyKey<String> = .init(xmlKey: "nc:metadata-files-live-photo")
 
 
-public class WebDAVFilePropertyKey<T> {
+public struct WebDAVFilePropertyKey<T> {
     public let xmlKey: String
-    public let convert: (_ text: String) -> T?
+    public let convert: @Sendable (_ text: String) -> T?
     
-    public init(xmlKey: String, convert: @escaping (_: String) -> T?) {
+    public init(xmlKey: String, convert: @Sendable @escaping (_: String) -> T?) {
         self.xmlKey = xmlKey
         self.convert = convert
     }
 }
 
+extension WebDAVFilePropertyKey: Sendable where T: Sendable {
+    
+}
+
 extension WebDAVFilePropertyKey where T == String {
-    public convenience init(xmlKey: String) {
+    public init(xmlKey: String) {
         self.init(xmlKey: xmlKey) { $0 }
     }
 }
 
 extension WebDAVFilePropertyKey where T == Int {
-    public convenience init(xmlKey: String) {
+    public init(xmlKey: String) {
         self.init(xmlKey: xmlKey) { Int($0) }
     }
 }
 
 extension WebDAVFilePropertyKey where T == Bool {
-    public convenience init(xmlKey: String) {
+    public init(xmlKey: String) {
         self.init(xmlKey: xmlKey) { $0 == "true" }
     }
 }
 
 extension WebDAVFilePropertyKey where T == MimeType {
-    public convenience init(xmlKey: String) {
+    public init(xmlKey: String) {
         self.init(xmlKey: xmlKey) { MimeType($0) }
     }
 }
@@ -109,9 +113,9 @@ extension WebDAVFilePropertyKey where T == String {
 
 public struct WebDAVFilePropertyFetchKey: Hashable, Equatable {
     public let xmlKey: String
-    public let convert: (_ text: String) -> Any?
+    public let convert: @Sendable (_ text: String) -> Any?
     
-    private init(xmlKey: String, convert: @escaping (_: String) -> Any?) {
+    private init(xmlKey: String, convert: @Sendable @escaping (_: String) -> Any?) {
         self.xmlKey = xmlKey
         self.convert = convert
     }
@@ -127,6 +131,10 @@ public struct WebDAVFilePropertyFetchKey: Hashable, Equatable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(xmlKey)
     }
+    
+}
+
+extension WebDAVFilePropertyFetchKey: Sendable {
     
 }
 

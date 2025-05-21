@@ -18,7 +18,7 @@ import Foundation
 
 
 /// A protocol that represents a simple path in a WebDAV server.
-public protocol WebDAVPathProtocol: CustomStringConvertible {
+public protocol WebDAVPathProtocol: CustomStringConvertible, Sendable, Equatable, Hashable {
     /// The string representation of the path. Always starts with a `/`. Never ends with a `/`.
     var stringRepresentation: String { get }
     

@@ -18,7 +18,7 @@ import Foundation
 import OSLog
 
 
-public class WebDAVSession {
+public final class WebDAVSession {
     /// A shared instance of WebDAVSession.
     public static let shared = WebDAVSession()
     

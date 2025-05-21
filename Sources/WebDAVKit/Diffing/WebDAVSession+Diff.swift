@@ -156,7 +156,7 @@ extension WebDAVSession {
         
         self.signposter?.emitEvent("start build file tree")
         
-        var localChangedFilesTree = try WebDAVFileTree(localFiles, basePath: directory)
+        let localChangedFilesTree = try WebDAVFileTree(localFiles, basePath: directory)
         for unchangedDirectory in remoteChangedFiles.unchangedDirectories {
             try localChangedFilesTree.removeSubtree(unchangedDirectory.path)
         }

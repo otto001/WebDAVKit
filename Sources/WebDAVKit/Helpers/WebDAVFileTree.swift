@@ -19,7 +19,7 @@ import Foundation
 /// A tree structure to store WebDAV files. 
 /// The tree is based on the path components of the files. Therefore, the tree allows for fast lookup and removal of whole subtrees (i.e., directories).
 /// The root node is the base path of the tree. The tree is not thread-safe.
-struct WebDAVFileTree {
+public final class WebDAVFileTree {
     /// A node in the tree. Contains a file and a reference to parent and child nodes.
     fileprivate class Node {
         /// The path component of the node.
@@ -82,14 +82,14 @@ struct WebDAVFileTree {
     private var rootNode: Node? = nil
 
     /// The number of files in the tree.
-    private(set) var count: Int = 0
+    public private(set) var count: Int = 0
 
     /// The base path of the tree. All files in the tree are below this path.
-    let basePath: AbsoluteWebDAVPath
+    public let basePath: AbsoluteWebDAVPath
     
     /// Creates a new file tree with a given base path.
     /// - Parameter basePath: The base path of the tree. All files in the tree are below this path.
-    init(basePath: any AbsoluteWebDAVPathProtocol) {
+    public init(basePath: any AbsoluteWebDAVPathProtocol) {
         self.basePath = AbsoluteWebDAVPath(basePath)
         //self.rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
     }
@@ -112,7 +112,7 @@ struct WebDAVFileTree {
     /// Creates a node at a given path. If the node already exists, returns the existing node.
     /// - Parameter pathComponents: The path components of the node.
     /// - Returns: The node at the given path.
-    mutating private func makeNode(pathComponents: [String]) -> Node {
+    private func makeNode(pathComponents: [String]) -> Node {
         if rootNode == nil {
             rootNode = .init(name: "", basePath: RelativeWebDAVPath(relativePath: "", relativeTo: AbsoluteWebDAVPath(basePath)))
             count = 1
@@ -133,11 +133,11 @@ struct WebDAVFileTree {
     /// Subscript to access a file at a given path. Returns nil if the file does not exist. Setting the file to nil removes the subtree at the given path.
     /// - Parameter pathComponents: The path components of the file.
     /// - Returns: The file at the given path if it exists.
-    subscript(_ pathComponents: [String]) -> WebDAVFile? {
+    public subscript(_ pathComponents: [String]) -> WebDAVFile? {
         get {
             node(pathComponents: pathComponents)?.file
         } 
-        mutating set {
+        set {
             if let newValue = newValue {
                 makeNode(pathComponents: pathComponents).file = newValue
             } else {
@@ -149,11 +149,11 @@ struct WebDAVFileTree {
      /// Subscript to access a file at a given path. Returns nil if the file does not exist. Setting the file to nil removes the subtree at the given path.
      /// - Parameter path: The path of the file.
      /// - Returns: The file at the given path if it exists.
-    subscript(_ path: WebDAVPath) -> WebDAVFile? {
+    public subscript(_ path: WebDAVPath) -> WebDAVFile? {
         get {
             node(pathComponents: path.pathComponents)?.file
         }
-        mutating set {
+        set {
             self[path.pathComponents] = newValue
         }
     }
@@ -161,7 +161,7 @@ struct WebDAVFileTree {
      /// Subscript to access a file at a given path. Returns nil if the file does not exist. Setting the file to nil removes the subtree at the given path.
      /// - Parameter path: The path of the file. Must be below the base path of the tree.
      /// - Returns: The file at the given path if it exists.
-    subscript(_ path: any AbsoluteWebDAVPathProtocol) -> WebDAVFile? {
+    public subscript(_ path: any AbsoluteWebDAVPathProtocol) -> WebDAVFile? {
         get throws {
             let relativePath = try path.relative(to: self.basePath)
             return node(pathComponents: relativePath.relativePath.pathComponents)?.file
@@ -170,7 +170,7 @@ struct WebDAVFileTree {
     
     /// Removes the subtree at a given path. The file at the given path is removed, as well as all its children.
     /// - Parameter pathComponents: The path components of the file to remove.
-    mutating func removeSubtree(_ pathComponents: [String]) {
+    public func removeSubtree(_ pathComponents: [String]) {
         if pathComponents.isEmpty {
             rootNode = nil
             count = 0
@@ -186,13 +186,13 @@ struct WebDAVFileTree {
     
     /// Removes the subtree at a given path. The file at the given path is removed, as well as all its children.
     /// - Parameter path: The path of the file to remove.
-    mutating func removeSubtree(_ path: WebDAVPath) {
+    public func removeSubtree(_ path: WebDAVPath) {
         self.removeSubtree(path.pathComponents)
     }
     
     /// Removes the subtree at a given path. The file at the given path is removed, as well as all its children.
     /// - Parameter path: The path of the file. Must be below the base path of the tree.
-    mutating func removeSubtree(_ path: any AbsoluteWebDAVPathProtocol) throws {
+    public func removeSubtree(_ path: any AbsoluteWebDAVPathProtocol) throws {
         let relativePath = try path.relative(to: self.basePath)
         
         self.removeSubtree(relativePath.relativePath)
@@ -200,28 +200,28 @@ struct WebDAVFileTree {
     
     /// Inserts a file into the tree. The file is inserted at its path. If a file already exists at that path, it is replaced.
     /// - Parameter file: The file to insert. The file must be below the base path of the tree.
-    mutating func insert(_ file: WebDAVFile) throws {
+    public func insert(_ file: WebDAVFile) throws {
         let relativePath = try file.path.relative(to: self.basePath)
         self[relativePath.relativePath] = file
     }
 }
 
 extension WebDAVFileTree: Collection {
-    typealias Element = WebDAVFile
+    public typealias Element = WebDAVFile
     
     /// An index in the tree. The index is based on a DFS traversal of the tree.
-    struct Index: Comparable {
+    public struct Index: Comparable {
         /// The node at the index.
         fileprivate let node: Node?
 
         /// The index of the node in the DFS traversal. Used for comparison between indices.
         let index: Int
         
-        static func < (lhs: WebDAVFileTree.Index, rhs: WebDAVFileTree.Index) -> Bool {
+        public static func < (lhs: WebDAVFileTree.Index, rhs: WebDAVFileTree.Index) -> Bool {
             lhs.index < rhs.index
         }
         
-        static func == (lhs: WebDAVFileTree.Index, rhs: WebDAVFileTree.Index) -> Bool {
+        public static func == (lhs: WebDAVFileTree.Index, rhs: WebDAVFileTree.Index) -> Bool {
             lhs.node === rhs.node
         }
         
@@ -263,7 +263,7 @@ extension WebDAVFileTree: Collection {
     
     /// An iterator for the tree. The iterator traverses the tree in DFS order.
     /// - Note: The order of the files is not guaranteed to be stable beyond being in DFS order.
-    struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol {
         private var index: Index
         
         fileprivate init(index: Index) {
@@ -273,7 +273,7 @@ extension WebDAVFileTree: Collection {
         /// Returns the next file in the tree. Returns nil if there is no next file. 
         /// - Note: The order of the files is not guaranteed to be stable being in DFS order.
         /// - Returns: The next file in the tree. If there is no next file, returns nil.
-        mutating func next() -> WebDAVFile? {
+        public mutating func next() -> WebDAVFile? {
             guard let nextIndex = index.next() else { return nil }
             index = nextIndex
             return index.node?.file
@@ -281,23 +281,23 @@ extension WebDAVFileTree: Collection {
     }
     
     /// The start index of the tree. The start index is at the base path of the tree.
-    var startIndex: Index {
+    public var startIndex: Index {
         return .init(node: rootNode, index: 0)
     }
     
     /// The end index of the tree. The end index is the index after the last file.
-    var endIndex: Index {
+    public var endIndex: Index {
         return .init(node: nil, index: count)
     }
     
     /// Returns an iterator for the tree. The iterator traverses the tree in DFS order.
     /// - Note: The order of the files is not guaranteed to be stable beyond being in DFS order.
-    func makeIterator() -> Iterator {
+    public func makeIterator() -> Iterator {
         return Iterator(index: startIndex)
     }
     
     /// Returns the index after a given index. Returns endIndex if there is no index after the given index.
-    func index(after i: Index) -> Index {
+    public func index(after i: Index) -> Index {
         guard i != endIndex else {
             fatalError("No index after endIndex")
         }
@@ -305,11 +305,11 @@ extension WebDAVFileTree: Collection {
         return i.next() ?? endIndex
     }
     
-    subscript(position: Index) -> WebDAVFile {
+    public subscript(position: Index) -> WebDAVFile {
         position.node!.file
     }
     
-    subscript(bounds: Range<Index>) -> Slice<WebDAVFileTree> {
+    public subscript(bounds: Range<Index>) -> Slice<WebDAVFileTree> {
         .init(base: self, bounds: bounds)
     }
 }
@@ -318,8 +318,8 @@ extension WebDAVFileTree {
     /// Creates a new file tree with a given base path and files.
     /// - Parameters: files: The files to insert into the tree. The files must be below the base path of the tree.
     /// - Parameters: basePath: The base path of the tree. All files in the tree are below this path.
-    init(_ files: [WebDAVFile], basePath: any AbsoluteWebDAVPathProtocol) throws {
-        self = .init(basePath: basePath)
+    convenience init(_ files: [WebDAVFile], basePath: any AbsoluteWebDAVPathProtocol) throws {
+        self.init(basePath: basePath)
         for file in files {
             try self.insert(file)
         }

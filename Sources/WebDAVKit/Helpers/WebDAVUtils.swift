@@ -16,13 +16,13 @@
 
 import Foundation
 
-public enum WebDAVListDepth: String {
+public enum WebDAVListDepth: String, Sendable {
     case zero = "0"
     case one = "1"
     case infinity = "infinity"
 }
 
-public enum WebDAVMethod: String {
+public enum WebDAVMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
     case put = "PUT"
@@ -35,7 +35,7 @@ public enum WebDAVMethod: String {
     case copy = "COPY"
 }
 
-public enum WebDAVServerType: Codable {
+public enum WebDAVServerType: Codable, Sendable {
     case nextcloud, owncloud, other
     
     var isOwncloud: Bool {

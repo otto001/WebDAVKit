@@ -16,7 +16,7 @@
 
 import Foundation
 
-public typealias WebDAVRequestModifyClosure = (_ request: inout URLRequest) -> Void
+public typealias WebDAVRequestModifyClosure = @Sendable (_ request: inout URLRequest) -> Void
 
 extension WebDAVSession {
     
