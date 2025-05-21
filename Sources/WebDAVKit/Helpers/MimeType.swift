@@ -48,17 +48,16 @@ extension MimeType: CustomStringConvertible {
 }
 
 extension MimeType: Codable {
-    
 }
 
 extension MimeType: Equatable {
-    
 }
 
 extension MimeType: Hashable {
-    
 }
 
+extension MimeType: Sendable {
+}
 
 extension MimeType: RawRepresentable {
     public typealias RawValue = String

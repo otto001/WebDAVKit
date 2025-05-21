@@ -17,7 +17,7 @@
 import Foundation
 
 
-public protocol WebDAVAccount {
+public protocol WebDAVAccount: Sendable {
     var username: String { get }
     var password: WebDAVSecret { get }
     

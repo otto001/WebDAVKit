@@ -17,7 +17,7 @@
 import Foundation
 import CoreGraphics
 
-public struct NextcloudPreviewOptions: Hashable {
+public struct NextcloudPreviewOptions: Hashable, Sendable {
     private var width: Int?
     private var height: Int?
     
@@ -40,7 +40,7 @@ public struct NextcloudPreviewOptions: Hashable {
     public static var `default` = NextcloudPreviewOptions(size: CGSize(width: 512, height: 512), contentMode: .fill)
     
     /// Constants that define how the thumbnail fills the dimensions.
-    public enum ContentMode: Hashable {
+    public enum ContentMode: Hashable, Sendable {
         case fill
         case fit
     }
